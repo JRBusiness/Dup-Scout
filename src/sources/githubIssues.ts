@@ -1,7 +1,8 @@
 import type { RawMatch, Source } from "../types.js";
-import { buildQuery } from "./query.js";
+import { queriesFor } from "./query.js";
 import { securitySignals } from "./signals.js";
-import { SEARCH_PER_PAGE, SNIPPET_LEN } from "./constants.js";
+import { SNIPPET_LEN } from "./constants.js";
+import { makeBudget, runSearches } from "../github/retrieval.js";
 
 interface SearchItem {
   number: number;
@@ -15,16 +16,19 @@ export const githubIssues: Source = {
   id: "github-issues",
   enabledByDefault: true,
   async search(ctx) {
-    const q = buildQuery(ctx, "type:issue");
+    const queries = queriesFor(ctx, "type:issue");
     if (ctx.dryRun) {
-      ctx.log(`[github-issues] ${q}`);
+      for (const q of queries) ctx.log(`[github-issues] ${q}`);
       return { matches: [] };
     }
-    const res = await ctx.client.octokit.rest.search.issuesAndPullRequests({
-      q,
-      per_page: SEARCH_PER_PAGE,
-    });
-    const matches = (res.data.items as SearchItem[]).map((it): RawMatch => ({
+    const budget = ctx.budget ?? makeBudget();
+    const { items, truncated } = await runSearches<SearchItem>(
+      queries,
+      (q, page) => ctx.client.octokit.rest.search.issuesAndPullRequests({ q, per_page: 100, page }),
+      (it) => `#${it.number}`,
+      { budget },
+    );
+    const matches = items.map((it): RawMatch => ({
       sourceId: "github-issues",
       id: `#${it.number}`,
       url: it.html_url,
@@ -33,11 +37,10 @@ export const githubIssues: Source = {
       snippet: (it.body ?? "").slice(0, SNIPPET_LEN),
       signals: securitySignals(it.title),
     }));
-    const total = res.data.total_count ?? matches.length;
-    if (total > matches.length) {
+    if (truncated) {
       ctx.log(
-        `[github-issues] ${total} issues matched but only the top ${matches.length} were fetched; ` +
-          `narrow the finding (add function/error names) for better recall.`,
+        `[github-issues] result set was truncated (rate/page/budget limit); ` +
+          `add distinctive terms (function/error names) for better recall.`,
       );
     }
     return { matches };
