@@ -61,6 +61,7 @@ export interface SearchContext {
   dryRun?: boolean;
   fetch?: FetchFn;
   log: (msg: string) => void;
+  budget?: import("./github/retrieval.js").RetrievalBudget;
 }
 
 export interface SourceResult {
