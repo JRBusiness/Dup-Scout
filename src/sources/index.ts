@@ -1,6 +1,9 @@
 import type { Source } from "../types.js";
 import { githubPrs } from "./githubPrs.js";
 import { githubIssues } from "./githubIssues.js";
+import { githubCommits } from "./githubCommits.js";
+import { githubReleases } from "./githubReleases.js";
+import { githubCode } from "./githubCode.js";
 
 export class SourceRegistry {
   private sources: Source[] = [];
@@ -25,5 +28,8 @@ export function defaultRegistry(): SourceRegistry {
   const r = new SourceRegistry();
   r.register(githubPrs);
   r.register(githubIssues);
+  r.register(githubCommits);
+  r.register(githubReleases);
+  r.register(githubCode);
   return r;
 }
