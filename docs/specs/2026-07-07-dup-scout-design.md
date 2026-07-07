@@ -267,9 +267,10 @@ Dup-Scout/
 
 ---
 
-## 9. Open Questions (to resolve during planning)
+## 9. Resolved Decisions
 
-- npm scope: unscoped `dup-scout` vs scoped `@jerrysd/dup-scout` (availability).
-- License: assume **MIT** unless changed.
-- `contests` fetch capability: ship a minimal built-in fetch, or leave it as a
-  pluggable hook the user wires up? (Lean: pluggable hook + guided URLs in v1.)
+- **npm name:** unscoped `dup-scout`.
+- **License:** MIT.
+- **`contests` source (v1):** *guided* mode only — emit candidate search URLs +
+  expose a pluggable fetch hook. No built-in scraper in v1; real fetching may
+  land in a later version.
