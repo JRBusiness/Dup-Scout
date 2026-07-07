@@ -72,3 +72,28 @@ describe("run", () => {
     expect(verdict.notes.some((n) => n.includes("github-issues"))).toBe(true);
   });
 });
+
+describe("run clientFactory injection", () => {
+  it("uses an injected clientFactory instead of the real GitHub client", async () => {
+    const { run } = await import("../src/engine.js");
+    const { SourceRegistry } = await import("../src/sources/index.js");
+    let sawClient = false;
+    const fakeClient = { owner: "acme", repo: "vault", octokit: {} } as never;
+    const registry = new SourceRegistry();
+    registry.register({
+      id: "probe",
+      enabledByDefault: true,
+      async search(ctx) {
+        sawClient = ctx.client === fakeClient && ctx.budget !== undefined;
+        return { matches: [] };
+      },
+    });
+    await run({
+      repo: "acme/vault",
+      finding: { title: "x", description: "" },
+      registry,
+      clientFactory: () => fakeClient,
+    });
+    expect(sawClient).toBe(true);
+  });
+});

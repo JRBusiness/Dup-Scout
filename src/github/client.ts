@@ -1,8 +1,12 @@
 import { execSync } from "node:child_process";
 import { Octokit } from "@octokit/rest";
+import { throttling } from "@octokit/plugin-throttling";
+import { retry } from "@octokit/plugin-retry";
+
+const DupOctokit: typeof Octokit = Octokit.plugin(throttling, retry);
 
 export interface GithubClient {
-  octokit: Octokit;
+  octokit: InstanceType<typeof DupOctokit>;
   owner: string;
   repo: string;
 }
@@ -33,11 +37,22 @@ export function resolveToken(
   return reader();
 }
 
-export function createGithubClient(repo: string, token?: string): GithubClient {
+export function createGithubClient(
+  repo: string,
+  token?: string,
+  fetchImpl?: typeof fetch,
+): GithubClient {
   const [owner, name] = repo.split("/");
   if (!owner || !name) {
     throw new Error(`Invalid repo "${repo}", expected owner/repo`);
   }
-  const octokit = new Octokit({ auth: resolveToken({ explicit: token }) });
+  const octokit = new DupOctokit({
+    auth: resolveToken({ explicit: token }),
+    request: fetchImpl ? { fetch: fetchImpl } : undefined,
+    throttle: {
+      onRateLimit: (_retryAfter, _options, _octokit, retryCount) => retryCount < 2,
+      onSecondaryRateLimit: (_retryAfter, _options, _octokit, retryCount) => retryCount < 2,
+    },
+  });
   return { octokit, owner, repo: name };
 }

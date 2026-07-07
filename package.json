@@ -43,6 +43,8 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@octokit/plugin-retry": "^6.1.0",
+    "@octokit/plugin-throttling": "^8.2.0",
     "@octokit/rest": "^20.1.1",
     "commander": "^12.1.0"
   },

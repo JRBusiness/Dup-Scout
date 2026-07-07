@@ -1,4 +1,5 @@
-import { createGithubClient } from "./github/client.js";
+import { createGithubClient, type GithubClient } from "./github/client.js";
+import { makeBudget } from "./github/retrieval.js";
 import { extractKeys } from "./keys.js";
 import { scoreMatch, aggregate, THRESHOLDS } from "./score.js";
 import { defaultRegistry, SourceRegistry } from "./sources/index.js";
@@ -22,6 +23,7 @@ export interface RunOptions {
   fetch?: FetchFn;
   log?: (m: string) => void;
   registry?: SourceRegistry;
+  clientFactory?: (repo: string, token?: string) => GithubClient;
 }
 
 async function safeSearch(source: Source, ctx: SearchContext): Promise<SourceResult> {
@@ -37,11 +39,12 @@ async function safeSearch(source: Source, ctx: SearchContext): Promise<SourceRes
 }
 
 export async function run(opts: RunOptions): Promise<Verdict> {
-  const client = createGithubClient(opts.repo, opts.token);
+  const client = (opts.clientFactory ?? createGithubClient)(opts.repo, opts.token);
   const keys = extractKeys(opts.finding);
   const registry = opts.registry ?? defaultRegistry();
   const sources = registry.select(opts.sources);
   const log = opts.log ?? ((): void => {});
+  const budget = makeBudget();
 
   const ctx: SearchContext = {
     client,
@@ -50,6 +53,7 @@ export async function run(opts: RunOptions): Promise<Verdict> {
     dryRun: opts.dryRun,
     fetch: opts.fetch,
     log,
+    budget,
   };
 
   const results = await Promise.all(sources.map((s) => safeSearch(s, ctx)));
