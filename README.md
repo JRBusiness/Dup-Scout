@@ -103,6 +103,18 @@ dup-scout install --force   # overwrite existing command files
 
 The command shells out to the `dup-scout` CLI (install it globally first with `npm i -g dup-scout`) and summarizes the verdict.
 
+## Benchmark
+
+Dup-Scout ships a deterministic benchmark that proves recall + verdict quality:
+
+```bash
+npm run bench        # replay recorded fixtures, compute Recall@K + verdict accuracy (CI gate)
+npm run bench:live   # re-fetch from GitHub and refresh fixtures (needs a token)
+```
+
+Cases live in `benchmark/cases/`, recorded responses in `benchmark/fixtures/`,
+and metric floors in `benchmark/thresholds.json`.
+
 ## Library use
 
 ```ts

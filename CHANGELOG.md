@@ -1,20 +1,19 @@
 # Changelog
 
-## Unreleased
+## 1.0.0
 
-- Recall & scoring improvements (from real-world benchmarking against
-  hashgraph/hedera-transaction-tool):
-  - Scoring no longer lets common filler words dilute a strong match on the
-    distinctive signal keys — signal-key coverage drives the base score (0..90)
-    and generic overlap adds only a small bonus (0..10). Strong same-topic
-    matches now clear the PARTIAL-OVERLAP threshold instead of reading as NOVEL.
-  - Search snippet window widened (300 → 2000 chars) so key terms deeper in a
-    PR/issue body are counted.
-  - GitHub search page size raised to the API max (100), and the sources now
-    **log** when more results matched than were fetched — no more silent
-    truncation.
-  - Query terms are ordered by distinctiveness (errors/identifiers/functions
-    before common invariant/pattern words) for better precision.
+- **Per-term merged retrieval**: each GitHub search source now issues one scoped
+  query per high-signal term (plus a broad OR query) and merges/dedups results,
+  so the exact prior-art item surfaces even when GitHub's relevance ranking
+  buries it in a broad query. Bounded by a per-run request budget with octokit
+  throttling/retry; truncation is logged, never silent.
+- **High-signal key extraction**: recognizes enums (`SCREAMING_SNAKE`), selectors
+  (`0x…`), PascalCase error/type names, and camelCase/`_snake` identifiers, and
+  weights them highest so queries and scoring key off the distinctive strings.
+- **Benchmark harness**: a deterministic recorded-fixture benchmark
+  (`npm run bench`) measures Recall@K and verdict accuracy against labeled cases
+  and gates regressions in CI; `npm run bench:live` refreshes fixtures.
+- Earlier scoring/recall tuning from the v0.1 line is folded in.
 
 ## 0.1.0 (unreleased)
 
