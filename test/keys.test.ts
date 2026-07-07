@@ -21,7 +21,7 @@ describe("extractKeys", () => {
 
   it("drops stopwords and marks camelCase/underscore identifiers as function kind", () => {
     const keys = extractKeys({ title: "The value of _settle", description: "when getReward runs" });
-    expect(keys.some((k) => k.term.toLowerCase() === "the")).toBe(false);
+    expect(keys.some((k) => k.term.toLowerCase() === "when")).toBe(false);
     expect(keys.some((k) => k.term === "_settle" && k.kind === "function")).toBe(true);
     expect(keys.some((k) => k.term === "getReward" && k.kind === "function")).toBe(true);
   });
