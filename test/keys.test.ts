@@ -26,3 +26,25 @@ describe("extractKeys", () => {
     expect(keys.some((k) => k.term === "getReward" && k.kind === "function")).toBe(true);
   });
 });
+
+describe("extractKeys high-signal tokens", () => {
+  it("classifies enums, selectors, errors, and identifiers with high weight", () => {
+    const keys = extractKeys({
+      title: "Missed WAITING_FOR_SIGNATURES via clearNewIndicatorForUser",
+      description: "throws InsufficientBalance; selector 0xa9059cbb",
+    });
+    const byTerm = (t: string) => keys.find((k) => k.term === t);
+    expect(byTerm("WAITING_FOR_SIGNATURES")).toMatchObject({ kind: "selector", weight: 6 });
+    expect(byTerm("0xa9059cbb")).toMatchObject({ kind: "selector", weight: 6 });
+    expect(byTerm("InsufficientBalance")).toMatchObject({ kind: "error", weight: 6 });
+    expect(byTerm("clearNewIndicatorForUser")).toMatchObject({ kind: "function", weight: 5 });
+  });
+
+  it("keeps single all-caps or single-hump words generic", () => {
+    const keys = extractKeys({ title: "The WAITING transaction failed", description: "" });
+    expect(keys.find((k) => k.term.toLowerCase() === "waiting")?.kind ?? "generic").toBe("generic");
+    expect(keys.find((k) => k.term.toLowerCase() === "transaction")?.kind ?? "generic").toBe(
+      "generic",
+    );
+  });
+});
