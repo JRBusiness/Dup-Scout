@@ -36,6 +36,8 @@
   },
   "scripts": {
     "build": "tsup",
+    "bench": "tsx benchmark/run.ts",
+    "bench:live": "tsx benchmark/run.ts --live",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint . && prettier --check .",
@@ -59,6 +61,7 @@
     "eslint-config-prettier": "^9.1.0",
     "prettier": "^3.3.0",
     "tsup": "^8.1.0",
+    "tsx": "^4.23.0",
     "typescript": "^5.5.0",
     "vitest": "^3.2.7"
   }
