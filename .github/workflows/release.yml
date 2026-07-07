@@ -1,23 +1,41 @@
 name: release
+
 on:
   push:
-    tags: ["v*"]
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   publish:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
           registry-url: https://registry.npmjs.org
-          cache: npm
+          package-manager-cache: false
       - run: npm ci
+      - run: npm run lint
       - run: npm test
       - run: npm run build
-      - run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: npm pack --dry-run
+      - name: Verify tag matches package version
+        run: |
+          node <<'NODE'
+          const { version } = require("./package.json");
+          const tag = process.env.GITHUB_REF_NAME;
+          if (tag !== `v${version}`) {
+            console.error(`Tag ${tag} does not match package version v${version}`);
+            process.exit(1);
+          }
+          NODE
+      - run: npm publish --access public
