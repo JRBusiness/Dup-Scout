@@ -17,6 +17,9 @@ export const githubCode: Source = {
       ctx.log(`[github-code] ${q}`);
       return { matches: [] };
     }
+    // NOTE: GitHub's `search/code` REST endpoint is deprecated and scheduled for
+    // removal (~2026-09-27). This source will need to migrate to the GraphQL
+    // search API (or another code-search mechanism) before then.
     const res = await ctx.client.octokit.rest.search.code({ q, per_page: 20 });
     const matches = (res.data.items as CodeItem[]).map((it): RawMatch => ({
       sourceId: "github-code",

@@ -26,6 +26,7 @@ export interface CliOptions {
 export interface CliDeps {
   run?: typeof engineRun;
   write?: (s: string) => void;
+  writeErr?: (s: string) => void;
   exit?: (code: number) => void;
   installFs?: InstallFs;
 }
@@ -41,6 +42,14 @@ const RANK: Record<VerdictLabel, number> = {
 export function verdictRank(label: VerdictLabel): number {
   return RANK[label];
 }
+
+const VALID_FAIL_ON_LABELS = new Set<VerdictLabel>([
+  "NOVEL",
+  "PARTIAL-OVERLAP",
+  "SILENTLY-FIXED",
+  "KNOWN-ISSUE",
+  "DUPLICATE",
+]);
 
 export function buildFindingFromOptions(opts: CliOptions): Finding {
   if (!opts.title) throw new Error("Provide --title (or use --finding <file>)");
@@ -65,6 +74,31 @@ export function buildFindingFromOptions(opts: CliOptions): Finding {
 type FilledDeps = Required<Omit<CliDeps, "installFs">>;
 
 async function runCheck(repo: string, opts: CliOptions, deps: FilledDeps): Promise<void> {
+  let failOnThreshold: VerdictLabel | undefined;
+  if (opts.failOn !== undefined) {
+    const label = opts.failOn.toUpperCase() as VerdictLabel;
+    if (!VALID_FAIL_ON_LABELS.has(label)) {
+      deps.writeErr(
+        `dup-scout: invalid --fail-on value "${opts.failOn}"; expected one of ` +
+          "NOVEL, PARTIAL-OVERLAP, SILENTLY-FIXED, KNOWN-ISSUE, DUPLICATE",
+      );
+      deps.exit(2);
+      return;
+    }
+    failOnThreshold = label;
+  }
+
+  let minScore: number | undefined;
+  if (opts.minScore !== undefined) {
+    const n = Number(opts.minScore);
+    if (!Number.isFinite(n)) {
+      deps.writeErr(`dup-scout: invalid --min-score value "${opts.minScore}"; expected a number`);
+      deps.exit(2);
+      return;
+    }
+    minScore = n;
+  }
+
   const finding = opts.finding ? loadFindingFromFile(opts.finding) : buildFindingFromOptions(opts);
   const verdict = await deps.run({
     repo,
@@ -76,7 +110,7 @@ async function runCheck(repo: string, opts: CliOptions, deps: FilledDeps): Promi
           .filter(Boolean)
       : undefined,
     token: opts.token,
-    minScore: opts.minScore ? Number(opts.minScore) : undefined,
+    minScore,
     dryRun: opts.dryRun,
     log: (m) => process.stderr.write(m + "\n"),
   });
@@ -85,11 +119,8 @@ async function runCheck(repo: string, opts: CliOptions, deps: FilledDeps): Promi
   else if (opts.markdown) deps.write(renderMarkdown(verdict));
   else deps.write(renderTerminal(verdict));
 
-  if (opts.failOn) {
-    const threshold = opts.failOn.toUpperCase() as VerdictLabel;
-    if (RANK[threshold] !== undefined && verdictRank(verdict.label) >= RANK[threshold]) {
-      deps.exit(1);
-    }
+  if (failOnThreshold && verdictRank(verdict.label) >= RANK[failOnThreshold]) {
+    deps.exit(1);
   }
 }
 
@@ -100,6 +131,11 @@ export function buildProgram(deps: CliDeps = {}): Command {
       deps.write ??
       ((s: string): void => {
         process.stdout.write(s + "\n");
+      }),
+    writeErr:
+      deps.writeErr ??
+      ((s: string): void => {
+        process.stderr.write(s + "\n");
       }),
     exit: deps.exit ?? ((code: number): void => process.exit(code)),
   };

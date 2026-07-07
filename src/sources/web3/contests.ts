@@ -48,6 +48,9 @@ export const contests: Source = {
         continue;
       }
     }
-    return { matches, notes: matches.length === 0 ? urls.map((u) => `Manual check: ${u}`) : [] };
+    return {
+      matches,
+      notes: matches.length === 0 ? urls.map((u) => `Manual check (contest platform): ${u}`) : [],
+    };
   },
 };

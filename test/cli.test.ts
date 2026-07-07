@@ -27,6 +27,39 @@ describe("verdictRank", () => {
 
 describe("runCli", () => {
   const verdict: Verdict = { label: "DUPLICATE", confidence: 0.9, matches: [], notes: [] };
+
+  it("exits non-zero for an invalid --fail-on label and does not silently pass", async () => {
+    const write = vi.fn();
+    const writeErr = vi.fn();
+    const exit = vi.fn();
+    const run = vi.fn().mockResolvedValue(verdict);
+    await runCli(["node", "dup-scout", "acme/vault", "--title", "t", "--fail-on", "DUPLICAT"], {
+      run,
+      write,
+      writeErr,
+      exit,
+    });
+    expect(exit).toHaveBeenCalledWith(2);
+    expect(run).not.toHaveBeenCalled();
+    expect(writeErr).toHaveBeenCalledWith(expect.stringContaining("invalid --fail-on"));
+  });
+
+  it("exits non-zero for a non-numeric --min-score", async () => {
+    const write = vi.fn();
+    const writeErr = vi.fn();
+    const exit = vi.fn();
+    const run = vi.fn().mockResolvedValue(verdict);
+    await runCli(["node", "dup-scout", "acme/vault", "--title", "t", "--min-score", "high"], {
+      run,
+      write,
+      writeErr,
+      exit,
+    });
+    expect(exit).toHaveBeenCalledWith(2);
+    expect(run).not.toHaveBeenCalled();
+    expect(writeErr).toHaveBeenCalledWith(expect.stringContaining("invalid --min-score"));
+  });
+
   it("prints markdown and exits non-zero when --fail-on is met", async () => {
     const write = vi.fn();
     const exit = vi.fn();
@@ -62,12 +95,9 @@ describe("runCli", () => {
   });
 });
 
-import { describe as describe2, it as it2, expect as expect2, vi as vi2 } from "vitest";
-import { runCli as runCli2 } from "../src/cli.js";
-
-describe2("runCli install", () => {
-  it2("writes command files for both agents and reports status", async () => {
-    const write = vi2.fn();
+describe("runCli install", () => {
+  it("writes command files for both agents and reports status", async () => {
+    const write = vi.fn();
     const written: Record<string, string> = {};
     const installFs = {
       exists: () => false,
@@ -76,8 +106,8 @@ describe2("runCli install", () => {
         written[p] = d;
       },
     };
-    await runCli2(["node", "dup-scout", "install", "--all"], { write, installFs });
-    expect2(write).toHaveBeenCalledWith(expect2.stringContaining("dup-scout.md"));
-    expect2(Object.keys(written).length).toBe(2);
+    await runCli(["node", "dup-scout", "install", "--all"], { write, installFs });
+    expect(write).toHaveBeenCalledWith(expect.stringContaining("dup-scout.md"));
+    expect(Object.keys(written).length).toBe(2);
   });
 });

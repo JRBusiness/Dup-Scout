@@ -33,7 +33,33 @@ dup-scout acme/vault --finding finding.md --markdown
 
 # CI gate: exit non-zero if it looks like a duplicate
 dup-scout acme/vault --finding finding.md --fail-on DUPLICATE
+
+# preview the queries without calling GitHub, as JSON
+dup-scout acme/vault --title "..." --keys claim,_settle --dry-run --json
 ```
+
+### Options
+
+| Flag                | Description                                                 |
+| ------------------- | ----------------------------------------------------------- |
+| `--title <s>`       | Finding title (required unless `--finding` is used)         |
+| `--desc <s>`        | Finding description                                         |
+| `--finding <file>`  | Load the finding from a `.json` or `.md` file               |
+| `--file <path>`     | Affected source file                                        |
+| `--function <name>` | Affected function name(s); repeatable                       |
+| `--keys <a,b,c>`    | Extra search keys (comma-separated)                         |
+| `--scope-tag <tag>` | In-scope tag for silent-fix detection                       |
+| `--bug-class <s>`   | Bug class (e.g. `reentrancy`)                               |
+| `--sources <ids>`   | Comma-separated source ids to enable                        |
+| `--min-score <n>`   | Minimum match score to report (numeric)                     |
+| `--json`            | Output JSON                                                 |
+| `--markdown`        | Output a markdown "Duplicate check" block                   |
+| `--dry-run`         | Print the queries that would run without calling the API    |
+| `--token <t>`       | GitHub token override                                       |
+| `--fail-on <label>` | Exit non-zero at/above this verdict (`NOVEL` … `DUPLICATE`) |
+
+Invalid `--fail-on` labels and non-numeric `--min-score` values exit with a
+non-zero status instead of being silently ignored.
 
 ### Finding markdown format
 
@@ -74,7 +100,8 @@ Register a `/dup-scout` slash command inside both agents so you can run a
 duplicate check without leaving your session:
 
 ```bash
-dup-scout install          # installs into both Claude Code and Codex
+dup-scout install --all     # installs into both Claude Code and Codex
+dup-scout install           # same as --all when no agent flag is given
 dup-scout install --claude  # Claude Code only  (~/.claude/commands/dup-scout.md)
 dup-scout install --codex   # Codex only         (~/.codex/prompts/dup-scout.md)
 dup-scout install --force   # overwrite existing command files

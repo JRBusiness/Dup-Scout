@@ -124,7 +124,7 @@ export function performInstall(
 
 export function hasOnPath(bin: string, env: NodeJS.ProcessEnv = process.env): boolean {
   const dirs = (env.PATH ?? "").split(delimiter).filter(Boolean);
-  const exts = process.platform === "win32" ? [".cmd", ".exe", ".ps1", ""] : [""];
+  const exts = process.platform === "win32" ? [".cmd", ".exe", ".bat", ".ps1", ""] : [""];
   return dirs.some((d) => exts.some((e) => existsSync(path.join(d, bin + e))));
 }
 

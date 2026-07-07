@@ -24,10 +24,7 @@ export interface RunOptions {
   registry?: SourceRegistry;
 }
 
-async function safeSearch(
-  source: Source,
-  ctx: SearchContext,
-): Promise<SourceResult & { failedId?: string }> {
+async function safeSearch(source: Source, ctx: SearchContext): Promise<SourceResult> {
   try {
     return await source.search(ctx);
   } catch (err) {
@@ -35,7 +32,6 @@ async function safeSearch(
     return {
       matches: [],
       notes: [`Source ${source.id} failed: ${(err as Error).message}`],
-      failedId: source.id,
     };
   }
 }
