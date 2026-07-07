@@ -1,9 +1,34 @@
 import type { Finding, KeyKind, WeightedKey } from "./types.js";
 
 const STOPWORDS = new Set([
-  "the", "a", "an", "of", "to", "in", "is", "and", "or", "for", "on", "with",
-  "by", "function", "contract", "value", "user", "data", "when", "this", "that",
-  "can", "be", "if", "via", "lets", "attacker", "runs",
+  "the",
+  "a",
+  "an",
+  "of",
+  "to",
+  "in",
+  "is",
+  "and",
+  "or",
+  "for",
+  "on",
+  "with",
+  "by",
+  "function",
+  "contract",
+  "value",
+  "user",
+  "data",
+  "when",
+  "this",
+  "that",
+  "can",
+  "be",
+  "if",
+  "via",
+  "lets",
+  "attacker",
+  "runs",
 ]);
 
 export function extractKeys(finding: Finding): WeightedKey[] {
@@ -18,7 +43,10 @@ export function extractKeys(finding: Finding): WeightedKey[] {
   for (const f of finding.functions ?? []) push(f, 5, "function");
   if (finding.file) {
     push(finding.file, 4, "file");
-    const base = finding.file.split(/[\\/]/).pop()!.replace(/\.[^.]+$/, "");
+    const base = finding.file
+      .split(/[\\/]/)
+      .pop()!
+      .replace(/\.[^.]+$/, "");
     push(base, 4, "contract");
   }
   for (const k of finding.keys ?? []) push(k, 4, "invariant");

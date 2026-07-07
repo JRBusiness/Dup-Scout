@@ -35,7 +35,11 @@ describe("securitySignals", () => {
 });
 
 describe("SourceRegistry", () => {
-  const s = (id: string, on: boolean): Source => ({ id, enabledByDefault: on, search: async () => ({ matches: [] }) });
+  const s = (id: string, on: boolean): Source => ({
+    id,
+    enabledByDefault: on,
+    search: async () => ({ matches: [] }),
+  });
   it("selects defaults when no ids given, explicit ids otherwise", () => {
     const r = new SourceRegistry();
     r.register(s("a", true));

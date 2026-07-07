@@ -29,7 +29,12 @@ export function parseFindingMarkdown(md: string): Finding {
     return undefined;
   };
   const csv = (v?: string): string[] | undefined =>
-    v ? v.split(",").map((s) => s.trim()).filter(Boolean) : undefined;
+    v
+      ? v
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : undefined;
   const body = lines
     .filter((l) => l !== heading && !/^(File|Functions?|Keys|Scope-?Tag|Bug-?Class)\s*:/i.test(l))
     .join("\n")

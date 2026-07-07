@@ -9,8 +9,16 @@ export interface Finding {
 }
 
 export type KeyKind =
-  | "function" | "file" | "contract" | "event" | "error"
-  | "modifier" | "invariant" | "selector" | "pattern" | "generic";
+  | "function"
+  | "file"
+  | "contract"
+  | "event"
+  | "error"
+  | "modifier"
+  | "invariant"
+  | "selector"
+  | "pattern"
+  | "generic";
 
 export interface WeightedKey {
   term: string;
@@ -23,24 +31,23 @@ export interface RawMatch {
   id: string;
   url: string;
   title: string;
-  state?: string;      // open | closed | merged
+  state?: string; // open | closed | merged
   snippet?: string;
   filePath?: string;
-  signals?: string[];  // "security-title" | "merged" | "audit-ack" | "silent-fix" | "contest"
+  signals?: string[]; // "security-title" | "merged" | "audit-ack" | "silent-fix" | "contest"
 }
 
 export interface Match extends RawMatch {
   matchedKeys: string[];
-  score: number;       // 0..100
+  score: number; // 0..100
 }
 
 export type VerdictLabel =
-  | "DUPLICATE" | "KNOWN-ISSUE" | "SILENTLY-FIXED"
-  | "PARTIAL-OVERLAP" | "NOVEL";
+  "DUPLICATE" | "KNOWN-ISSUE" | "SILENTLY-FIXED" | "PARTIAL-OVERLAP" | "NOVEL";
 
 export interface Verdict {
   label: VerdictLabel;
-  confidence: number;  // 0..1
+  confidence: number; // 0..1
   matches: Match[];
   notes: string[];
 }

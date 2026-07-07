@@ -18,11 +18,13 @@ function defaultGhTokenReader(): string | undefined {
   }
 }
 
-export function resolveToken(o: {
-  explicit?: string;
-  env?: NodeJS.ProcessEnv;
-  ghTokenReader?: () => string | undefined;
-} = {}): string | undefined {
+export function resolveToken(
+  o: {
+    explicit?: string;
+    env?: NodeJS.ProcessEnv;
+    ghTokenReader?: () => string | undefined;
+  } = {},
+): string | undefined {
   const env = o.env ?? process.env;
   const reader = o.ghTokenReader ?? defaultGhTokenReader;
   if (o.explicit) return o.explicit;

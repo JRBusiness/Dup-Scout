@@ -17,23 +17,37 @@ const keys: WeightedKey[] = [
 describe("scoreMatch", () => {
   it("scores an exact-function merged PR highly", () => {
     const raw: RawMatch = {
-      sourceId: "github-prs", id: "#12", url: "u", title: "Fix reentrancy in claim()",
-      state: "merged", signals: ["security-title"],
+      sourceId: "github-prs",
+      id: "#12",
+      url: "u",
+      title: "Fix reentrancy in claim()",
+      state: "merged",
+      signals: ["security-title"],
     };
     const m = scoreMatch(raw, keys, finding);
     expect(m.matchedKeys).toContain("claim");
     expect(m.score).toBeGreaterThanOrEqual(THRESHOLDS.duplicate);
   });
   it("scores an unrelated issue low", () => {
-    const raw: RawMatch = { sourceId: "github-issues", id: "#3", url: "u", title: "typo in README" };
+    const raw: RawMatch = {
+      sourceId: "github-issues",
+      id: "#3",
+      url: "u",
+      title: "typo in README",
+    };
     expect(scoreMatch(raw, keys, finding).score).toBeLessThan(THRESHOLDS.partial);
   });
 });
 
 describe("aggregate", () => {
   const mk = (over: Partial<RawMatch>): RawMatch => ({
-    sourceId: "github-prs", id: "#1", url: "u", title: "Fix reentrancy in claim()",
-    state: "merged", signals: ["security-title"], ...over,
+    sourceId: "github-prs",
+    id: "#1",
+    url: "u",
+    title: "Fix reentrancy in claim()",
+    state: "merged",
+    signals: ["security-title"],
+    ...over,
   });
   it("returns NOVEL when there are no matches", () => {
     expect(aggregate([], finding).label).toBe("NOVEL");
@@ -47,7 +61,11 @@ describe("aggregate", () => {
     expect(aggregate([m], finding).label).toBe("KNOWN-ISSUE");
   });
   it("returns SILENTLY-FIXED when top match carries silent-fix", () => {
-    const m = scoreMatch(mk({ sourceId: "github-commits", signals: ["silent-fix"], filePath: "src/Vault.sol" }), keys, finding);
+    const m = scoreMatch(
+      mk({ sourceId: "github-commits", signals: ["silent-fix"], filePath: "src/Vault.sol" }),
+      keys,
+      finding,
+    );
     expect(aggregate([m], finding).label).toBe("SILENTLY-FIXED");
   });
 });
