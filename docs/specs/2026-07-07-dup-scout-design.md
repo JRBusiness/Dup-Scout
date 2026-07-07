@@ -26,7 +26,11 @@ likely to be a duplicate — *before* the report is written.
 - Pluggable sources so web3-specific prior art (audit reports, Code4rena /
   Sherlock / Cantina / Immunefi known-issues) can be added without touching core.
 - CI-friendly (exit codes) and paste-friendly (`--markdown` output).
-- Publishable to npm; usable both as a CLI and as an embeddable library.
+- Publishable to npm; usable **both** as a CLI (`npm i -g dup-scout` → `dup-scout`
+  on PATH) and as an embeddable library (`npm i dup-scout` → `import { run }`).
+- One-command **agent integration**: `dup-scout install` registers a `/dup-scout`
+  slash command in **both** Claude Code and Codex so the checker is callable from
+  inside either agent.
 
 ### Non-goals (YAGNI)
 - No GUI / web dashboard.
@@ -216,6 +220,27 @@ Sources & output:
   table) to paste into hunt notes or a report appendix.
 - `--dry-run` prints every source's queries for transparency/debugging.
 
+### 6a. `install` subcommand (agent integration)
+
+```
+dup-scout install [--claude] [--codex] [--all] [--force]
+```
+
+- Writes a `/dup-scout` slash-command file into each selected agent's config dir:
+  - **Claude Code:** `${CLAUDE_CONFIG_DIR:-~/.claude}/commands/dup-scout.md`
+  - **Codex:** `${CODEX_HOME:-~/.codex}/prompts/dup-scout.md`
+- Each file is a **prompt template** that takes the finding as `$ARGUMENTS` and
+  instructs the agent to run the `dup-scout` CLI and interpret the verdict. The
+  Claude file carries YAML frontmatter (`description`, `argument-hint`); the
+  Codex file is plain markdown (Codex prompts don't parse frontmatter).
+- No flags (or `--all`) installs into both. `--force` overwrites an existing
+  file; otherwise an existing file is left untouched and reported as skipped.
+- Explicit opt-in only — there is **no** silent `postinstall` file writing;
+  `npm install` just installs the package (a postinstall may only *print* a hint
+  to run `dup-scout install`).
+- Warns (non-fatal) if `dup-scout` is not found on `PATH`, since the slash
+  command shells out to it.
+
 ---
 
 ## 7. Testing & Verification
@@ -241,6 +266,7 @@ Dup-Scout/
   src/
     cli.ts
     engine.ts
+    install.ts            # `install` subcommand + agent command templates
     finding.ts            # Finding type + parseFinding
     keys.ts               # extractKeys
     score.ts              # scoreMatch + aggregate + thresholds
@@ -274,3 +300,7 @@ Dup-Scout/
 - **`contests` source (v1):** *guided* mode only — emit candidate search URLs +
   expose a pluggable fetch hook. No built-in scraper in v1; real fetching may
   land in a later version.
+- **Agent install:** explicit `dup-scout install` subcommand (no silent
+  postinstall); prompt-template command files at the standard Claude Code
+  (`commands/`) and Codex (`prompts/`) locations, with `CLAUDE_CONFIG_DIR` /
+  `CODEX_HOME` env overrides honored.

@@ -27,7 +27,8 @@
 Dup-Scout/
   src/
     index.ts               # library entry: re-exports run + public types
-    cli.ts                 # commander CLI, exit codes
+    cli.ts                 # commander CLI (check + install subcommands), exit codes
+    install.ts             # `install` subcommand + Claude/Codex command templates
     engine.ts              # run(): orchestration
     types.ts               # all shared types
     finding.ts             # Finding parsing (object / markdown / file)
@@ -2073,7 +2074,7 @@ import { loadFindingFromFile } from "./finding.js";
 import { renderJson, renderMarkdown, renderTerminal } from "./reporters/index.js";
 import type { Finding, VerdictLabel } from "./types.js";
 
-interface CliOptions {
+export interface CliOptions {
   title?: string;
   desc?: string;
   finding?: string;
@@ -2089,6 +2090,12 @@ interface CliOptions {
   minScore?: string;
   dryRun?: boolean;
   failOn?: string;
+}
+
+export interface CliDeps {
+  run?: typeof engineRun;
+  write?: (s: string) => void;
+  exit?: (code: number) => void;
 }
 
 const RANK: Record<VerdictLabel, number> = {
@@ -2118,22 +2125,47 @@ export function buildFindingFromOptions(opts: CliOptions): Finding {
   };
 }
 
-export async function runCli(
-  argv: string[],
-  deps: {
-    run?: typeof engineRun;
-    write?: (s: string) => void;
-    exit?: (code: number) => void;
-  } = {},
+async function runCheck(
+  repo: string,
+  opts: CliOptions,
+  deps: Required<CliDeps>,
 ): Promise<void> {
-  const run = deps.run ?? engineRun;
-  const write = deps.write ?? ((s: string): void => process.stdout.write(s + "\n"));
-  const exit = deps.exit ?? ((code: number): void => process.exit(code));
+  const finding = opts.finding ? loadFindingFromFile(opts.finding) : buildFindingFromOptions(opts);
+  const verdict = await deps.run({
+    repo,
+    finding,
+    sources: opts.sources ? opts.sources.split(",").map((s) => s.trim()).filter(Boolean) : undefined,
+    token: opts.token,
+    minScore: opts.minScore ? Number(opts.minScore) : undefined,
+    dryRun: opts.dryRun,
+    log: (m) => process.stderr.write(m + "\n"),
+  });
+
+  if (opts.json) deps.write(renderJson(verdict));
+  else if (opts.markdown) deps.write(renderMarkdown(verdict));
+  else deps.write(renderTerminal(verdict));
+
+  if (opts.failOn) {
+    const threshold = opts.failOn.toUpperCase() as VerdictLabel;
+    if (RANK[threshold] !== undefined && verdictRank(verdict.label) >= RANK[threshold]) {
+      deps.exit(1);
+    }
+  }
+}
+
+export function buildProgram(deps: CliDeps = {}): Command {
+  const filled: Required<CliDeps> = {
+    run: deps.run ?? engineRun,
+    write: deps.write ?? ((s: string): void => process.stdout.write(s + "\n")),
+    exit: deps.exit ?? ((code: number): void => process.exit(code)),
+  };
 
   const program = new Command();
+  program.name("dup-scout").description("Prior-art / duplicate checker for bug bounty findings");
+
   program
-    .name("dup-scout")
-    .description("Prior-art / duplicate checker for bug bounty findings")
+    .command("check", { isDefault: true })
+    .description("check whether a finding is a likely duplicate")
     .argument("<owner/repo>", "target GitHub repository")
     .option("--title <s>", "finding title")
     .option("--desc <s>", "finding description")
@@ -2150,34 +2182,16 @@ export async function runCli(
     .option("--min-score <n>", "minimum score to report")
     .option("--dry-run", "print queries without calling the API")
     .option("--fail-on <label>", "exit non-zero at/above this verdict")
-    .allowExcessArguments(false);
+    .action(async (repo: string, opts: CliOptions) => {
+      await runCheck(repo, opts, filled);
+    });
 
-  await program.parseAsync(argv);
-  const opts = program.opts<CliOptions>();
-  const repo = program.args[0];
+  // NOTE: Task 14 adds a `program.command("install")` here.
+  return program;
+}
 
-  const finding = opts.finding ? loadFindingFromFile(opts.finding) : buildFindingFromOptions(opts);
-
-  const verdict = await run({
-    repo,
-    finding,
-    sources: opts.sources ? opts.sources.split(",").map((s) => s.trim()).filter(Boolean) : undefined,
-    token: opts.token,
-    minScore: opts.minScore ? Number(opts.minScore) : undefined,
-    dryRun: opts.dryRun,
-    log: (m) => process.stderr.write(m + "\n"),
-  });
-
-  if (opts.json) write(renderJson(verdict));
-  else if (opts.markdown) write(renderMarkdown(verdict));
-  else write(renderTerminal(verdict));
-
-  if (opts.failOn) {
-    const threshold = opts.failOn.toUpperCase() as VerdictLabel;
-    if (RANK[threshold] !== undefined && verdictRank(verdict.label) >= RANK[threshold]) {
-      exit(1);
-    }
-  }
+export async function runCli(argv: string[], deps: CliDeps = {}): Promise<void> {
+  await buildProgram(deps).parseAsync(argv);
 }
 
 // Entry point when run as the CLI binary.
@@ -2214,7 +2228,314 @@ git commit -m "feat: commander CLI with output formats and CI exit codes"
 
 ---
 
-### Task 14: Publish metadata, docs & CI
+### Task 14: `install` subcommand & agent integration
+
+**Files:**
+- Create: `src/install.ts`
+- Modify: `src/cli.ts` (add the `install` subcommand to `buildProgram`; extend `CliDeps`)
+- Test: `test/install.test.ts`, and add an install case to `test/cli.test.ts`
+
+**Interfaces:**
+- Consumes: node `fs`/`os`/`path`.
+- Produces:
+  - Templates `CLAUDE_COMMAND_TEMPLATE`, `CODEX_PROMPT_TEMPLATE`.
+  - `claudeCommandDir(env?, home?): string`, `codexPromptDir(env?, home?): string`
+  - `resolveAgents(opts): { claude: boolean; codex: boolean }`
+  - `planInstall(opts): InstallTarget[]`
+  - `performInstall(targets, force, fs?): InstallResult[]`
+  - `hasOnPath(bin, env?): boolean`
+  - `installCommand(opts, deps?): { results: InstallResult[]; warnings: string[] }`
+  - Types `InstallTarget`, `InstallResult`, `InstallFs`.
+- CLI wiring adds `installFs?: InstallFs` to `CliDeps` (test injection point).
+
+- [ ] **Step 1: Write the failing test `test/install.test.ts`**
+
+```ts
+import { describe, it, expect, vi } from "vitest";
+import path from "node:path";
+import {
+  planInstall, performInstall, resolveAgents,
+  claudeCommandDir, codexPromptDir, CLAUDE_COMMAND_TEMPLATE,
+} from "../src/install.js";
+
+describe("resolveAgents", () => {
+  it("defaults to both, honours --all and single flags", () => {
+    expect(resolveAgents({})).toEqual({ claude: true, codex: true });
+    expect(resolveAgents({ all: true })).toEqual({ claude: true, codex: true });
+    expect(resolveAgents({ claude: true })).toEqual({ claude: true, codex: false });
+    expect(resolveAgents({ codex: true })).toEqual({ claude: false, codex: true });
+  });
+});
+
+describe("dir resolution", () => {
+  it("honours CLAUDE_CONFIG_DIR and CODEX_HOME, else falls back to home", () => {
+    expect(claudeCommandDir({ CLAUDE_CONFIG_DIR: "/x/.claude" }, "/home")).toBe(path.join("/x/.claude", "commands"));
+    expect(codexPromptDir({ CODEX_HOME: "/y/.codex" }, "/home")).toBe(path.join("/y/.codex", "prompts"));
+    expect(claudeCommandDir({}, "/home")).toBe(path.join("/home", ".claude", "commands"));
+    expect(codexPromptDir({}, "/home")).toBe(path.join("/home", ".codex", "prompts"));
+  });
+});
+
+describe("planInstall", () => {
+  it("builds targets with correct files and templates", () => {
+    const t = planInstall({ claude: true, codex: true, env: {}, home: "/home" });
+    expect(t.map((x) => x.name)).toEqual(["claude", "codex"]);
+    expect(t[0].file).toBe(path.join("/home", ".claude", "commands", "dup-scout.md"));
+    expect(t[0].content).toBe(CLAUDE_COMMAND_TEMPLATE);
+  });
+});
+
+describe("performInstall", () => {
+  function fsMock(existing: string[]) {
+    const written: Record<string, string> = {};
+    return {
+      written,
+      fs: { exists: (p: string) => existing.includes(p), mkdir: vi.fn(), write: (p: string, d: string) => { written[p] = d; } },
+    };
+  }
+  it("writes new files and skips existing without force", () => {
+    const targets = planInstall({ claude: true, codex: true, env: {}, home: "/home" });
+    const { fs, written } = fsMock([targets[0].file]);
+    const res = performInstall(targets, false, fs);
+    expect(res[0].status).toBe("skipped");
+    expect(res[1].status).toBe("written");
+    expect(Object.keys(written)).toEqual([targets[1].file]);
+  });
+  it("overwrites with force", () => {
+    const targets = planInstall({ claude: true, codex: false, env: {}, home: "/home" });
+    const { fs, written } = fsMock([targets[0].file]);
+    const res = performInstall(targets, true, fs);
+    expect(res[0].status).toBe("written");
+    expect(written[targets[0].file]).toContain("dup-scout");
+  });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `npx vitest run test/install.test.ts`
+Expected: FAIL — cannot find module `../src/install.js`.
+
+- [ ] **Step 3: Write `src/install.ts`**
+
+```ts
+import { homedir } from "node:os";
+import path, { delimiter } from "node:path";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+
+export const CLAUDE_COMMAND_TEMPLATE = `---
+description: Check whether a finding is a likely duplicate/known-issue with dup-scout
+argument-hint: <owner/repo> "<finding title>" [more context]
+allowed-tools: Bash(dup-scout:*)
+---
+
+You are helping decide whether a bug bounty finding would be marked a duplicate
+before it is submitted. Use the \`dup-scout\` CLI (already on PATH).
+
+Finding context from the user: $ARGUMENTS
+
+Steps:
+1. Determine the target GitHub repo (owner/repo) and a short finding title,
+   description, and — if known — the affected file, function(s), and in-scope tag.
+2. Run the checker, for example:
+   \`dup-scout <owner/repo> --title "<title>" --desc "<desc>" --file <path> --function <name> --markdown\`
+3. Read the verdict (DUPLICATE / KNOWN-ISSUE / SILENTLY-FIXED / PARTIAL-OVERLAP /
+   NOVEL) and the evidence table. State whether it is safe to submit, cite the
+   strongest matching PR/issue/commit/audit link, and list any manual checks it printed.
+`;
+
+export const CODEX_PROMPT_TEMPLATE = `Check whether a bug bounty finding is a likely duplicate before submitting, using the \`dup-scout\` CLI (already on PATH).
+
+Finding context from the user: $ARGUMENTS
+
+Steps:
+1. Determine the target GitHub repo (owner/repo), a short finding title and
+   description, and — if known — the affected file, function(s), and in-scope tag.
+2. Run: dup-scout <owner/repo> --title "<title>" --desc "<desc>" --file <path> --function <name> --markdown
+3. Read the verdict (DUPLICATE / KNOWN-ISSUE / SILENTLY-FIXED / PARTIAL-OVERLAP /
+   NOVEL) and evidence table. Say whether it is safe to submit, cite the strongest
+   matching link, and list any manual checks printed.
+`;
+
+export interface InstallTarget {
+  name: "claude" | "codex";
+  dir: string;
+  file: string;
+  content: string;
+}
+
+export interface InstallResult {
+  name: string;
+  file: string;
+  status: "written" | "skipped";
+}
+
+export interface InstallFs {
+  exists: (p: string) => boolean;
+  mkdir: (p: string) => void;
+  write: (p: string, data: string) => void;
+}
+
+const realFs: InstallFs = {
+  exists: existsSync,
+  mkdir: (p) => mkdirSync(p, { recursive: true }),
+  write: (p, data) => writeFileSync(p, data, "utf8"),
+};
+
+export function claudeCommandDir(env: NodeJS.ProcessEnv = process.env, home = homedir()): string {
+  return path.join(env.CLAUDE_CONFIG_DIR ?? path.join(home, ".claude"), "commands");
+}
+
+export function codexPromptDir(env: NodeJS.ProcessEnv = process.env, home = homedir()): string {
+  return path.join(env.CODEX_HOME ?? path.join(home, ".codex"), "prompts");
+}
+
+export function resolveAgents(opts: { claude?: boolean; codex?: boolean; all?: boolean }): {
+  claude: boolean;
+  codex: boolean;
+} {
+  if (opts.all || (!opts.claude && !opts.codex)) return { claude: true, codex: true };
+  return { claude: !!opts.claude, codex: !!opts.codex };
+}
+
+export function planInstall(opts: {
+  claude: boolean;
+  codex: boolean;
+  env?: NodeJS.ProcessEnv;
+  home?: string;
+}): InstallTarget[] {
+  const env = opts.env ?? process.env;
+  const home = opts.home ?? homedir();
+  const targets: InstallTarget[] = [];
+  if (opts.claude) {
+    const dir = claudeCommandDir(env, home);
+    targets.push({ name: "claude", dir, file: path.join(dir, "dup-scout.md"), content: CLAUDE_COMMAND_TEMPLATE });
+  }
+  if (opts.codex) {
+    const dir = codexPromptDir(env, home);
+    targets.push({ name: "codex", dir, file: path.join(dir, "dup-scout.md"), content: CODEX_PROMPT_TEMPLATE });
+  }
+  return targets;
+}
+
+export function performInstall(targets: InstallTarget[], force: boolean, fs: InstallFs = realFs): InstallResult[] {
+  return targets.map((t) => {
+    if (fs.exists(t.file) && !force) {
+      return { name: t.name, file: t.file, status: "skipped" };
+    }
+    fs.mkdir(t.dir);
+    fs.write(t.file, t.content);
+    return { name: t.name, file: t.file, status: "written" };
+  });
+}
+
+export function hasOnPath(bin: string, env: NodeJS.ProcessEnv = process.env): boolean {
+  const dirs = (env.PATH ?? "").split(delimiter).filter(Boolean);
+  const exts = process.platform === "win32" ? [".cmd", ".exe", ".ps1", ""] : [""];
+  return dirs.some((d) => exts.some((e) => existsSync(path.join(d, bin + e))));
+}
+
+export function installCommand(
+  opts: { claude?: boolean; codex?: boolean; all?: boolean; force?: boolean },
+  deps: { fs?: InstallFs; env?: NodeJS.ProcessEnv; home?: string; pathHasBin?: () => boolean } = {},
+): { results: InstallResult[]; warnings: string[] } {
+  const agents = resolveAgents(opts);
+  const targets = planInstall({ claude: agents.claude, codex: agents.codex, env: deps.env, home: deps.home });
+  const results = performInstall(targets, !!opts.force, deps.fs);
+  const warnings: string[] = [];
+  const present = deps.pathHasBin ? deps.pathHasBin() : hasOnPath("dup-scout");
+  if (!present) {
+    warnings.push("`dup-scout` was not found on PATH; the /dup-scout command shells out to it. Install globally with `npm i -g dup-scout`.");
+  }
+  return { results, warnings };
+}
+```
+
+> Note on template escaping: the template constants are delimited by backticks,
+> so every literal backtick in the guidance text (around `dup-scout`) is written
+> as backslash-backtick inside the template — exactly as shown in the code above.
+> Copy the code verbatim; do not add or remove backslashes.
+
+- [ ] **Step 4: Run install-unit tests**
+
+Run: `npx vitest run test/install.test.ts`
+Expected: PASS.
+
+- [ ] **Step 5: Wire the `install` subcommand into `src/cli.ts`**
+
+Add imports at the top of `src/cli.ts`:
+```ts
+import { installCommand, type InstallFs } from "./install.js";
+```
+
+Extend `CliDeps` (add the injection point):
+```ts
+export interface CliDeps {
+  run?: typeof engineRun;
+  write?: (s: string) => void;
+  exit?: (code: number) => void;
+  installFs?: InstallFs;
+}
+```
+
+In `buildProgram`, replace the `// NOTE: Task 14 adds ...` line with:
+```ts
+  program
+    .command("install")
+    .description("install the /dup-scout slash command into Claude Code and/or Codex")
+    .option("--claude", "install into Claude Code (~/.claude/commands)")
+    .option("--codex", "install into Codex (~/.codex/prompts)")
+    .option("--all", "install into both (default when no agent flag is given)")
+    .option("--force", "overwrite existing command files")
+    .action((opts: { claude?: boolean; codex?: boolean; all?: boolean; force?: boolean }) => {
+      const { results, warnings } = installCommand(opts, { fs: deps.installFs });
+      for (const r of results) {
+        filled.write(
+          r.status === "written"
+            ? `installed: ${r.name} -> ${r.file}`
+            : `skipped (exists, use --force): ${r.name} -> ${r.file}`,
+        );
+      }
+      for (const w of warnings) filled.write(`warning: ${w}`);
+    });
+```
+
+- [ ] **Step 6: Add an install case to `test/cli.test.ts`**
+
+Append this block inside `test/cli.test.ts`:
+```ts
+import { describe as describe2, it as it2, expect as expect2, vi as vi2 } from "vitest";
+import { runCli as runCli2 } from "../src/cli.js";
+
+describe2("runCli install", () => {
+  it2("writes command files for both agents and reports status", async () => {
+    const write = vi2.fn();
+    const written: Record<string, string> = {};
+    const installFs = { exists: () => false, mkdir: () => {}, write: (p: string, d: string) => { written[p] = d; } };
+    await runCli2(["node", "dup-scout", "install", "--all"], { write, installFs });
+    expect2(write).toHaveBeenCalledWith(expect2.stringContaining("dup-scout.md"));
+    expect2(Object.keys(written).length).toBe(2);
+  });
+});
+```
+
+- [ ] **Step 7: Run tests, build, lint**
+
+Run: `npx vitest run test/install.test.ts test/cli.test.ts`
+Expected: PASS.
+Run: `npm test && npm run build && npm run lint`
+Expected: all green. Fix any format issues with `npm run format` and re-run lint.
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add src/install.ts src/cli.ts test/install.test.ts test/cli.test.ts
+git commit -m "feat: dup-scout install subcommand for Claude Code and Codex"
+```
+
+---
+
+### Task 15: Publish metadata, docs & CI
 
 **Files:**
 - Create: `README.md`, `CHANGELOG.md`, `LICENSE`, `.github/workflows/ci.yml`, `.github/workflows/release.yml`
@@ -2323,6 +2644,28 @@ Bug-Class: reentrancy
 > Cantina / Immunefi search URLs to check manually. Provide a fetch hook via the
 > library API to auto-scan them.
 
+## Agent integration (Claude Code & Codex)
+
+Register a `/dup-scout` slash command inside both agents so you can run a
+duplicate check without leaving your session:
+
+```bash
+dup-scout install          # installs into both Claude Code and Codex
+dup-scout install --claude  # Claude Code only  (~/.claude/commands/dup-scout.md)
+dup-scout install --codex   # Codex only         (~/.codex/prompts/dup-scout.md)
+dup-scout install --force   # overwrite existing command files
+```
+
+`install` honours `CLAUDE_CONFIG_DIR` and `CODEX_HOME` if set. It never runs on
+`npm install` — it's an explicit opt-in step. Then, inside either agent:
+
+```
+/dup-scout acme/vault reentrancy in claim() lets an attacker drain the vault
+```
+
+The command shells out to the `dup-scout` CLI (install it globally first with
+`npm i -g dup-scout`) and summarizes the verdict.
+
 ## Library use
 
 ```ts
@@ -2350,7 +2693,9 @@ MIT
 
 - Initial release: engine, GitHub PR/issue/commit/release/code sources,
   web3 audit-report and guided contest sources, terminal/json/markdown
-  reporters, and the `dup-scout` CLI with CI-friendly exit codes.
+  reporters, the `dup-scout` CLI with CI-friendly exit codes, and a
+  `dup-scout install` subcommand that registers a `/dup-scout` slash command
+  in Claude Code and Codex.
 ```
 
 - [ ] **Step 4: Write `.github/workflows/ci.yml`**
@@ -2433,7 +2778,7 @@ git commit -m "docs: README, changelog, license, and CI/release workflows"
 
 | Spec section | Task(s) |
 |---|---|
-| §2 Tech & packaging | 1, 14 |
+| §2 Tech & packaging (lib + CLI install) | 1, 15 |
 | §3 Architecture — engine + registry | 6, 12 |
 | §3 Core units table | 2–13 |
 | §3 Key data types | 2 |
@@ -2445,12 +2790,13 @@ git commit -m "docs: README, changelog, license, and CI/release workflows"
 | §5 Key extraction | 3 |
 | §5 Scoring + verdict matrix | 4 |
 | §6 CLI UX (flags, formats, exit codes, dry-run) | 13 |
-| §7 Testing (mocked octokit, no live net, smoke) | every task + 14 |
-| §8 Repo layout | matches File Structure |
-| §9 Resolved decisions (name/MIT/guided) | 1, 10, 14 |
+| §6a `install` subcommand (Claude + Codex, env overrides, no silent postinstall) | 14 |
+| §7 Testing (mocked octokit, no live net, smoke) | every task + 15 |
+| §8 Repo layout (incl. `src/install.ts`) | matches File Structure |
+| §9 Resolved decisions (name/MIT/guided/agent-install) | 1, 10, 14, 15 |
 
 No spec section is left without a task.
 
 **2. Placeholder scan:** No "TBD"/"implement later"/"add error handling" placeholders — every code step contains complete code. Source failure handling is concrete (`safeSearch` in Task 12). Config-file loading (`.dupscout.json`) from spec §4 is intentionally deferred as a post-0.1 enhancement — sources are already runtime-pluggable via the `registry` option, so `.dupscout.json` is not required for the described functionality. (Noted here so it is a conscious cut, not a silent gap.)
 
-**3. Type consistency:** Verified across tasks — `RawMatch`/`Match`/`WeightedKey`/`SearchContext`/`SourceResult`/`Source` defined once in Task 2 and consumed unchanged; `run`/`RunOptions` defined in Task 12 and consumed by the CLI in Task 13; `scoreMatch`/`aggregate`/`THRESHOLDS` names stable between Tasks 4, 12; source ids (`github-prs`, `github-issues`, `github-commits`, `github-releases`, `github-code`, `audit-reports`, `contests`) consistent between source modules, registry, and CLI `--sources`.
+**3. Type consistency:** Verified across tasks — `RawMatch`/`Match`/`WeightedKey`/`SearchContext`/`SourceResult`/`Source` defined once in Task 2 and consumed unchanged; `run`/`RunOptions` defined in Task 12 and consumed by the CLI in Task 13; `scoreMatch`/`aggregate`/`THRESHOLDS` names stable between Tasks 4, 12; source ids (`github-prs`, `github-issues`, `github-commits`, `github-releases`, `github-code`, `audit-reports`, `contests`) consistent between source modules, registry, and CLI `--sources`. Task 14 additions are consistent: `CliDeps`/`CliOptions`/`buildProgram` defined in Task 13 and extended (not redefined) in Task 14; `InstallFs`/`InstallTarget`/`InstallResult`/`installCommand` defined in `src/install.ts` (Task 14) and consumed only by `src/cli.ts`.
