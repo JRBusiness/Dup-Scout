@@ -1,5 +1,6 @@
 import type { RawMatch, Source } from "../types.js";
 import { highSignalTerms, keyTerms } from "./query.js";
+import { SEARCH_PER_PAGE } from "./constants.js";
 import { makeBudget, runSearches } from "../github/retrieval.js";
 
 interface CodeItem {
@@ -31,7 +32,7 @@ export const githubCode: Source = {
     const budget = ctx.budget ?? makeBudget();
     const { items, truncated } = await runSearches<CodeItem>(
       queries,
-      (q, page) => ctx.client.octokit.rest.search.code({ q, per_page: 100, page }),
+      (q, page) => ctx.client.octokit.rest.search.code({ q, per_page: SEARCH_PER_PAGE, page }),
       (it) => it.path,
       { budget },
     );

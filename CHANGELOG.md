@@ -15,7 +15,7 @@
   and gates regressions in CI; `npm run bench:live` refreshes fixtures.
 - Earlier scoring/recall tuning from the v0.1 line is folded in.
 
-## 0.1.0 (unreleased)
+## 0.1.0
 
 - Initial release: engine, GitHub PR/issue/commit/release/code sources,
   web3 audit-report and guided contest sources, terminal/json/markdown

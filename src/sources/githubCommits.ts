@@ -1,6 +1,6 @@
 import type { RawMatch, Source } from "../types.js";
 import { queriesFor } from "./query.js";
-import { SNIPPET_LEN } from "./constants.js";
+import { SEARCH_PER_PAGE, SNIPPET_LEN } from "./constants.js";
 import { makeBudget, runSearches } from "../github/retrieval.js";
 
 interface CommitItem {
@@ -34,7 +34,7 @@ export const githubCommits: Source = {
     const budget = ctx.budget ?? makeBudget();
     const { items, truncated } = await runSearches<CommitItem>(
       queries,
-      (q, page) => ctx.client.octokit.rest.search.commits({ q, per_page: 100, page }),
+      (q, page) => ctx.client.octokit.rest.search.commits({ q, per_page: SEARCH_PER_PAGE, page }),
       (it) => it.sha,
       { budget },
     );
@@ -55,7 +55,8 @@ export const githubCommits: Source = {
     }
 
     // Silent-fix detection: did the affected file change after the in-scope tag?
-    if (ctx.finding.scopeTag && ctx.finding.file) {
+    if (ctx.finding.scopeTag && ctx.finding.file && budget.remaining > 0) {
+      budget.remaining -= 1;
       const cmp = await ctx.client.octokit.rest.repos.compareCommitsWithBasehead({
         owner: ctx.client.owner,
         repo: ctx.client.repo,

@@ -3,14 +3,19 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { run } from "../src/engine.js";
 import type { Finding, VerdictLabel } from "../src/types.js";
-import { recallAtK, verdictMeets } from "./metrics.js";
+import { recallAtK, verdictMeets, verdictAtMost } from "./metrics.js";
 import { replayFactory, recordFactory, type Fixture } from "./replayClient.js";
 
 interface Case {
   name: string;
   repo: string;
   finding: Finding;
-  expect: { knownItemIds: string[]; minVerdict: VerdictLabel; topK: number };
+  expect: {
+    knownItemIds: string[];
+    minVerdict: VerdictLabel;
+    maxVerdict?: VerdictLabel;
+    topK: number;
+  };
 }
 
 // Exclude github-code: its search.code responses are the deprecated endpoint and
@@ -63,7 +68,9 @@ for (const c of cases) {
   if (live) writeFileSync(fixturePath, JSON.stringify(fixture, null, 2));
 
   const recall = recallAtK(verdict.matches, c.expect.knownItemIds, c.expect.topK);
-  const verdictOk = verdictMeets(verdict.label, c.expect.minVerdict);
+  const verdictOk =
+    verdictMeets(verdict.label, c.expect.minVerdict) &&
+    (c.expect.maxVerdict ? verdictAtMost(verdict.label, c.expect.maxVerdict) : true);
   recallSum += recall;
   verdictHits += verdictOk ? 1 : 0;
   rows.push(

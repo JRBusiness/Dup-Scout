@@ -7,5 +7,5 @@
     "keys": ["fluxcapacitor", "tachyonbuffer"],
     "bugClass": "nonsense"
   },
-  "expect": { "knownItemIds": [], "minVerdict": "NOVEL", "topK": 10 }
+  "expect": { "knownItemIds": [], "minVerdict": "NOVEL", "maxVerdict": "NOVEL", "topK": 10 }
 }

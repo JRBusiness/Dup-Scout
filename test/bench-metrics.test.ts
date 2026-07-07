@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { recallAtK, verdictMeets } from "../benchmark/metrics.js";
+import { recallAtK, verdictMeets, verdictAtMost } from "../benchmark/metrics.js";
 
 describe("recallAtK", () => {
   const matches = [{ id: "#1" }, { id: "#2" }, { id: "#3" }, { id: "#4" }];
@@ -19,5 +19,13 @@ describe("verdictMeets", () => {
     expect(verdictMeets("DUPLICATE", "PARTIAL-OVERLAP")).toBe(true);
     expect(verdictMeets("NOVEL", "NOVEL")).toBe(true);
     expect(verdictMeets("PARTIAL-OVERLAP", "DUPLICATE")).toBe(false);
+  });
+});
+
+describe("verdictAtMost", () => {
+  it("passes when actual is at or below the maximum", () => {
+    expect(verdictAtMost("NOVEL", "NOVEL")).toBe(true);
+    expect(verdictAtMost("DUPLICATE", "NOVEL")).toBe(false);
+    expect(verdictAtMost("PARTIAL-OVERLAP", "KNOWN-ISSUE")).toBe(true);
   });
 });

@@ -66,7 +66,7 @@ describe("githubCommits", () => {
 describe("githubCommits per-term retrieval", () => {
   it("merges commit results across per-term queries, deduped", async () => {
     const byQuery: Record<string, unknown[]> = {
-      "repo:acme/vault settle OR ROUND_DOWN": [
+      "repo:acme/vault ROUND_DOWN OR settle": [
         { sha: "aaaaaaa1", html_url: "c1", commit: { message: "chore" } },
       ],
       "repo:acme/vault ROUND_DOWN": [

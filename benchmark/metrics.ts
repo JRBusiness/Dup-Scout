@@ -11,3 +11,7 @@ export function recallAtK(matches: { id: string }[], knownIds: string[], k: numb
 export function verdictMeets(actual: VerdictLabel, min: VerdictLabel): boolean {
   return verdictRank(actual) >= verdictRank(min);
 }
+
+export function verdictAtMost(actual: VerdictLabel, max: VerdictLabel): boolean {
+  return verdictRank(actual) <= verdictRank(max);
+}

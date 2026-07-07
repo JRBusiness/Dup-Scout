@@ -1,4 +1,5 @@
 import { createGithubClient, type GithubClient } from "../src/github/client.js";
+import { SNIPPET_LEN } from "../src/sources/constants.js";
 
 export type FixtureEntry =
   { ok: true; data: unknown } | { ok: false; status: number; message: string };
@@ -41,9 +42,10 @@ function setPath(root: Record<string, unknown>, dotted: string, fn: unknown): vo
 // with text sliced to the prefix they read — keeps replay byte-for-byte
 // behaviourally identical while shrinking the committed fixtures ~10x. This is
 // real recorded data, projected at record time; nothing is fabricated.
-const SLIM_TEXT = 2000;
-
-const slim = (v: unknown): string | unknown => (typeof v === "string" ? v.slice(0, SLIM_TEXT) : v);
+// Slicing at the source's SNIPPET_LEN locks the fidelity invariant: fixtures
+// keep exactly the prefix the sources consume, no more, no less.
+const slim = (v: unknown): string | unknown =>
+  typeof v === "string" ? v.slice(0, SNIPPET_LEN) : v;
 
 function slimResponse(method: Method, data: unknown): unknown {
   if (method === "search.issuesAndPullRequests") {

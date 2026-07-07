@@ -1,7 +1,7 @@
 import type { RawMatch, Source } from "../types.js";
 import { queriesFor } from "./query.js";
 import { securitySignals } from "./signals.js";
-import { SNIPPET_LEN } from "./constants.js";
+import { SEARCH_PER_PAGE, SNIPPET_LEN } from "./constants.js";
 import { makeBudget, runSearches } from "../github/retrieval.js";
 
 interface SearchItem {
@@ -25,7 +25,12 @@ export const githubPrs: Source = {
     const budget = ctx.budget ?? makeBudget();
     const { items, truncated } = await runSearches<SearchItem>(
       queries,
-      (q, page) => ctx.client.octokit.rest.search.issuesAndPullRequests({ q, per_page: 100, page }),
+      (q, page) =>
+        ctx.client.octokit.rest.search.issuesAndPullRequests({
+          q,
+          per_page: SEARCH_PER_PAGE,
+          page,
+        }),
       (it) => `#${it.number}`,
       { budget },
     );
