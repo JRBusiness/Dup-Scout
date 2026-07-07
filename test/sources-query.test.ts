@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { keyTerms, buildQuery } from "../src/sources/query.js";
+import { keyTerms, buildQuery, highSignalTerms, queriesFor } from "../src/sources/query.js";
 import { securitySignals } from "../src/sources/signals.js";
 import { SourceRegistry } from "../src/sources/index.js";
 import type { SearchContext, WeightedKey, Source } from "../src/types.js";
@@ -52,6 +52,48 @@ describe("buildQuery", () => {
   it("prefixes repo and type qualifier", () => {
     const ctx = { client: { owner: "acme", repo: "vault" }, keys } as unknown as SearchContext;
     expect(buildQuery(ctx, "type:pr")).toMatch(/^repo:acme\/vault type:pr /);
+  });
+});
+
+describe("highSignalTerms", () => {
+  it("returns distinctive-first, non-generic, quoted terms up to max", () => {
+    const mixed: WeightedKey[] = [
+      { term: "notification", weight: 4, kind: "invariant" },
+      { term: "InsufficientBalance", weight: 6, kind: "error" },
+      { term: "the", weight: 1, kind: "generic" },
+      { term: "share price", weight: 4, kind: "invariant" },
+    ];
+    const t = highSignalTerms(mixed, 3);
+    expect(t[0]).toBe("InsufficientBalance");
+    expect(t).toContain('"share price"');
+    expect(t).not.toContain("the");
+    expect(t).toHaveLength(3);
+  });
+});
+
+describe("queriesFor", () => {
+  it("builds a broad OR query plus one scoped query per high-signal term", () => {
+    const perTermKeys: WeightedKey[] = [
+      { term: "WAITING_FOR_SIGNATURES", weight: 6, kind: "selector" },
+      { term: "notification", weight: 4, kind: "invariant" },
+    ];
+    const ctx = {
+      client: { owner: "acme", repo: "vault" },
+      keys: perTermKeys,
+    } as unknown as SearchContext;
+    const qs = queriesFor(ctx, "type:pr");
+    expect(qs[0]).toMatch(/^repo:acme\/vault type:pr /);
+    expect(qs.some((q) => q === "repo:acme/vault type:pr WAITING_FOR_SIGNATURES")).toBe(true);
+    expect(qs.some((q) => q === "repo:acme/vault type:pr notification")).toBe(true);
+    // deduped, no empty-term queries
+    expect(new Set(qs).size).toBe(qs.length);
+  });
+
+  it("supports an empty type qualifier (commits/code)", () => {
+    const singleKey: WeightedKey[] = [{ term: "claimReward", weight: 5, kind: "function" }];
+    const ctx = { client: { owner: "a", repo: "b" }, keys: singleKey } as unknown as SearchContext;
+    const qs = queriesFor(ctx, "");
+    expect(qs).toContain("repo:a/b claimReward");
   });
 });
 

@@ -36,3 +36,33 @@ export function buildQuery(ctx: SearchContext, typeQualifier: string): string {
   const terms = keyTerms(ctx.keys);
   return `${repo} ${typeQualifier} ${terms}`.trim();
 }
+
+// The most distinctive terms, one per query. Same distinctive-first ordering
+// and generic-drop/multiword-quoting as keyTerms, but returned as a list (not
+// OR-joined) so each can scope its own precise search.
+export function highSignalTerms(keys: WeightedKey[], max = 6): string[] {
+  return [...keys]
+    .filter((k) => k.kind !== "generic")
+    .sort(
+      (a, b) =>
+        KIND_PRIORITY[b.kind] - KIND_PRIORITY[a.kind] ||
+        b.weight - a.weight ||
+        b.term.length - a.term.length,
+    )
+    .slice(0, max)
+    .map((k) => (k.term.includes(" ") ? `"${k.term}"` : k.term));
+}
+
+// One broad OR union query plus one scoped query per high-signal term, all
+// scoped to `repo:owner/name [typeQualifier]`, deduped, and stripped of any
+// query that degenerated to the bare base (no usable terms).
+export function queriesFor(ctx: SearchContext, typeQualifier: string): string[] {
+  const base = `repo:${ctx.client.owner}/${ctx.client.repo}${typeQualifier ? ` ${typeQualifier}` : ""}`;
+  const broadTerms = keyTerms(ctx.keys);
+  const queries: string[] = [];
+  if (broadTerms) queries.push(`${base} ${broadTerms}`.trim());
+  for (const term of highSignalTerms(ctx.keys)) {
+    queries.push(`${base} ${term}`.trim());
+  }
+  return Array.from(new Set(queries)).filter((q) => q !== base);
+}
