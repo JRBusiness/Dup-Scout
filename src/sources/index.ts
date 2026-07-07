@@ -4,6 +4,7 @@ import { githubIssues } from "./githubIssues.js";
 import { githubCommits } from "./githubCommits.js";
 import { githubReleases } from "./githubReleases.js";
 import { githubCode } from "./githubCode.js";
+import { auditReports } from "./web3/auditReports.js";
 
 export class SourceRegistry {
   private sources: Source[] = [];
@@ -31,5 +32,6 @@ export function defaultRegistry(): SourceRegistry {
   r.register(githubCommits);
   r.register(githubReleases);
   r.register(githubCode);
+  r.register(auditReports);
   return r;
 }
