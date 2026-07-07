@@ -95,6 +95,18 @@ describe("queriesFor", () => {
     const qs = queriesFor(ctx, "");
     expect(qs).toContain("repo:a/b claimReward");
   });
+
+  it("caps the broad OR union at 5 operators (6 terms) to satisfy GitHub search", () => {
+    const many: WeightedKey[] = Array.from({ length: 10 }, (_, i) => ({
+      term: `term${i}`,
+      weight: 5,
+      kind: "function" as const,
+    }));
+    const ctx = { client: { owner: "a", repo: "b" }, keys: many } as unknown as SearchContext;
+    const qs = queriesFor(ctx, "type:pr");
+    const broadTerms = qs[0].replace("repo:a/b type:pr ", "").split(" OR ");
+    expect(broadTerms.length).toBeLessThanOrEqual(6); // <=5 OR operators
+  });
 });
 
 describe("securitySignals", () => {

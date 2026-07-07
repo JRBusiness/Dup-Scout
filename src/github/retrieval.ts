@@ -63,10 +63,18 @@ export async function runSearches<T>(
   let truncated = false;
   let total = 0;
   for (const q of queries) {
-    const r = await searchPaged((page) => call(q, page), { maxPages, budget: opts.budget });
-    groups.push(r.items);
-    truncated = truncated || r.truncated;
-    total = Math.max(total, r.total);
+    try {
+      const r = await searchPaged((page) => call(q, page), { maxPages, budget: opts.budget });
+      groups.push(r.items);
+      truncated = truncated || r.truncated;
+      total = Math.max(total, r.total);
+    } catch {
+      // A single failing query (e.g. a 422 on an over-broad OR union or a
+      // transient rate limit) must not discard the results of the other
+      // queries. Skip it and flag truncation so the caller surfaces a
+      // "results may be incomplete" note instead of returning nothing.
+      truncated = true;
+    }
   }
   return { items: mergeById(groups, idOf), truncated, total };
 }

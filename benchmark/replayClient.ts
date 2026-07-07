@@ -35,6 +35,73 @@ function setPath(root: Record<string, unknown>, dotted: string, fn: unknown): vo
   root[a] = ns;
 }
 
+// Characters of a body/message/patch the sources ever read (src SNIPPET_LEN).
+// Recording the full multi-KB bodies GitHub returns bloats fixtures to tens of
+// MB; projecting each response down to the exact fields the sources consume —
+// with text sliced to the prefix they read — keeps replay byte-for-byte
+// behaviourally identical while shrinking the committed fixtures ~10x. This is
+// real recorded data, projected at record time; nothing is fabricated.
+const SLIM_TEXT = 2000;
+
+const slim = (v: unknown): string | unknown => (typeof v === "string" ? v.slice(0, SLIM_TEXT) : v);
+
+function slimResponse(method: Method, data: unknown): unknown {
+  if (method === "search.issuesAndPullRequests") {
+    const d = data as {
+      total_count?: number;
+      incomplete_results?: boolean;
+      items?: Record<string, unknown>[];
+    };
+    return {
+      total_count: d.total_count,
+      incomplete_results: d.incomplete_results,
+      items: (d.items ?? []).map((it) => {
+        const pr = it.pull_request as { merged_at?: unknown } | undefined;
+        return {
+          number: it.number,
+          html_url: it.html_url,
+          title: it.title,
+          state: it.state,
+          body: slim(it.body),
+          ...(pr ? { pull_request: { merged_at: pr.merged_at ?? null } } : {}),
+        };
+      }),
+    };
+  }
+  if (method === "search.commits") {
+    const d = data as { total_count?: number; items?: Record<string, unknown>[] };
+    return {
+      total_count: d.total_count,
+      items: (d.items ?? []).map((it) => ({
+        sha: it.sha,
+        html_url: it.html_url,
+        commit: { message: slim((it.commit as { message?: unknown } | undefined)?.message ?? "") },
+      })),
+    };
+  }
+  if (method === "repos.listReleases") {
+    return (data as Record<string, unknown>[]).map((rel) => ({
+      name: rel.name,
+      tag_name: rel.tag_name,
+      html_url: rel.html_url,
+      body: slim(rel.body),
+    }));
+  }
+  if (method === "repos.compareCommitsWithBasehead") {
+    const d = data as { files?: Record<string, unknown>[] };
+    return {
+      files: (d.files ?? []).map((f) => ({
+        filename: f.filename,
+        status: f.status,
+        patch: slim(f.patch),
+      })),
+    };
+  }
+  // search.code / repos.getContent and anything else: keep verbatim (small or
+  // 404, and not part of the default benchmark source set).
+  return data;
+}
+
 function fakeOctokit(handler: (m: Method, params: Record<string, unknown>) => Promise<unknown>) {
   const rest: Record<string, unknown> = {};
   for (const m of METHODS) {
@@ -72,8 +139,9 @@ export function recordFactory(
       const method = nsAny[b] as (p: unknown) => Promise<{ data: unknown }>;
       try {
         const res = await method(params);
-        fixture.calls[key] = { ok: true, data: res.data };
-        return { data: res.data };
+        const data = slimResponse(m, res.data);
+        fixture.calls[key] = { ok: true, data };
+        return { data };
       } catch (err) {
         const status = (err as { status?: number }).status ?? 500;
         fixture.calls[key] = { ok: false, status, message: (err as Error).message };

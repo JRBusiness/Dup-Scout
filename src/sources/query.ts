@@ -53,12 +53,19 @@ export function highSignalTerms(keys: WeightedKey[], max = 6): string[] {
     .map((k) => (k.term.includes(" ") ? `"${k.term}"` : k.term));
 }
 
+// GitHub's search API rejects a query with "More than five AND / OR / NOT
+// operators" (HTTP 422). N OR-joined terms use N-1 operators, so the broad
+// union query is capped at 6 terms (5 operators) to stay valid. Exceeding it
+// makes the broad query 422 — and because it runs first, that error would
+// otherwise abort the whole source before the scoped per-term queries run.
+export const MAX_BROAD_TERMS = 6;
+
 // One broad OR union query plus one scoped query per high-signal term, all
 // scoped to `repo:owner/name [typeQualifier]`, deduped, and stripped of any
 // query that degenerated to the bare base (no usable terms).
 export function queriesFor(ctx: SearchContext, typeQualifier: string): string[] {
   const base = `repo:${ctx.client.owner}/${ctx.client.repo}${typeQualifier ? ` ${typeQualifier}` : ""}`;
-  const broadTerms = keyTerms(ctx.keys);
+  const broadTerms = keyTerms(ctx.keys, MAX_BROAD_TERMS);
   const queries: string[] = [];
   if (broadTerms) queries.push(`${base} ${broadTerms}`.trim());
   for (const term of highSignalTerms(ctx.keys)) {

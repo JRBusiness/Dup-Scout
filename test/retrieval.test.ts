@@ -74,4 +74,15 @@ describe("runSearches", () => {
     expect(r.items.map((x) => x.n)).toEqual([1, 2, 3]);
     expect(call).toHaveBeenCalledTimes(2);
   });
+
+  it("does not let one failing query abort the others (truncated=true)", async () => {
+    const budget = makeBudget(40);
+    const call = vi.fn(async (q: string) => {
+      if (q === "bad") throw new Error("422");
+      return { data: { items: [{ n: 7 }], total_count: 1 } };
+    });
+    const r = await runSearches(["bad", "good"], call, (x) => String(x.n), { budget });
+    expect(r.items.map((x) => x.n)).toEqual([7]);
+    expect(r.truncated).toBe(true);
+  });
 });
