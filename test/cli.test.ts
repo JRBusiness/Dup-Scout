@@ -61,3 +61,23 @@ describe("runCli", () => {
     expect(exit).not.toHaveBeenCalledWith(1);
   });
 });
+
+import { describe as describe2, it as it2, expect as expect2, vi as vi2 } from "vitest";
+import { runCli as runCli2 } from "../src/cli.js";
+
+describe2("runCli install", () => {
+  it2("writes command files for both agents and reports status", async () => {
+    const write = vi2.fn();
+    const written: Record<string, string> = {};
+    const installFs = {
+      exists: () => false,
+      mkdir: () => {},
+      write: (p: string, d: string) => {
+        written[p] = d;
+      },
+    };
+    await runCli2(["node", "dup-scout", "install", "--all"], { write, installFs });
+    expect2(write).toHaveBeenCalledWith(expect2.stringContaining("dup-scout.md"));
+    expect2(Object.keys(written).length).toBe(2);
+  });
+});

@@ -2,6 +2,7 @@ import { Command } from "commander";
 import { run as engineRun } from "./engine.js";
 import { loadFindingFromFile } from "./finding.js";
 import { renderJson, renderMarkdown, renderTerminal } from "./reporters/index.js";
+import { installCommand, type InstallFs } from "./install.js";
 import type { Finding, VerdictLabel } from "./types.js";
 
 export interface CliOptions {
@@ -26,6 +27,7 @@ export interface CliDeps {
   run?: typeof engineRun;
   write?: (s: string) => void;
   exit?: (code: number) => void;
+  installFs?: InstallFs;
 }
 
 const RANK: Record<VerdictLabel, number> = {
@@ -60,7 +62,9 @@ export function buildFindingFromOptions(opts: CliOptions): Finding {
   };
 }
 
-async function runCheck(repo: string, opts: CliOptions, deps: Required<CliDeps>): Promise<void> {
+type FilledDeps = Required<Omit<CliDeps, "installFs">>;
+
+async function runCheck(repo: string, opts: CliOptions, deps: FilledDeps): Promise<void> {
   const finding = opts.finding ? loadFindingFromFile(opts.finding) : buildFindingFromOptions(opts);
   const verdict = await deps.run({
     repo,
@@ -90,7 +94,7 @@ async function runCheck(repo: string, opts: CliOptions, deps: Required<CliDeps>)
 }
 
 export function buildProgram(deps: CliDeps = {}): Command {
-  const filled: Required<CliDeps> = {
+  const filled: FilledDeps = {
     run: deps.run ?? engineRun,
     write:
       deps.write ??
@@ -126,7 +130,24 @@ export function buildProgram(deps: CliDeps = {}): Command {
       await runCheck(repo, opts, filled);
     });
 
-  // NOTE: Task 14 adds a `program.command("install")` here.
+  program
+    .command("install")
+    .description("install the /dup-scout slash command into Claude Code and/or Codex")
+    .option("--claude", "install into Claude Code (~/.claude/commands)")
+    .option("--codex", "install into Codex (~/.codex/prompts)")
+    .option("--all", "install into both (default when no agent flag is given)")
+    .option("--force", "overwrite existing command files")
+    .action((opts: { claude?: boolean; codex?: boolean; all?: boolean; force?: boolean }) => {
+      const { results, warnings } = installCommand(opts, { fs: deps.installFs });
+      for (const r of results) {
+        filled.write(
+          r.status === "written"
+            ? `installed: ${r.name} -> ${r.file}`
+            : `skipped (exists, use --force): ${r.name} -> ${r.file}`,
+        );
+      }
+      for (const w of warnings) filled.write(`warning: ${w}`);
+    });
   return program;
 }
 
