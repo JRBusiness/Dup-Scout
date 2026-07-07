@@ -1,4 +1,5 @@
 import type { RawMatch, Source } from "../types.js";
+import { SEARCH_PER_PAGE, SNIPPET_LEN } from "./constants.js";
 
 interface Release {
   name: string | null;
@@ -18,7 +19,7 @@ export const githubReleases: Source = {
     const res = await ctx.client.octokit.rest.repos.listReleases({
       owner: ctx.client.owner,
       repo: ctx.client.repo,
-      per_page: 50,
+      per_page: SEARCH_PER_PAGE,
     });
     const terms = ctx.keys.filter((k) => k.kind !== "generic").map((k) => k.term.toLowerCase());
     const matches: RawMatch[] = [];
@@ -30,9 +31,15 @@ export const githubReleases: Source = {
           id: rel.tag_name,
           url: rel.html_url,
           title: rel.name ?? rel.tag_name,
-          snippet: (rel.body ?? "").slice(0, 300),
+          snippet: (rel.body ?? "").slice(0, SNIPPET_LEN),
         });
       }
+    }
+    if (res.data.length >= SEARCH_PER_PAGE) {
+      ctx.log(
+        `[github-releases] scanned the latest ${SEARCH_PER_PAGE} releases only; ` +
+          `older releases were not checked.`,
+      );
     }
     return { matches };
   },

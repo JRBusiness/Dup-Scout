@@ -1,5 +1,6 @@
 import type { RawMatch, Source } from "../types.js";
 import { keyTerms } from "./query.js";
+import { SEARCH_PER_PAGE, SNIPPET_LEN } from "./constants.js";
 
 interface CommitItem {
   sha: string;
@@ -29,15 +30,22 @@ export const githubCommits: Source = {
       return { matches: [] };
     }
 
-    const res = await ctx.client.octokit.rest.search.commits({ q, per_page: 20 });
+    const res = await ctx.client.octokit.rest.search.commits({ q, per_page: SEARCH_PER_PAGE });
     for (const it of res.data.items as CommitItem[]) {
       matches.push({
         sourceId: "github-commits",
         id: it.sha.slice(0, 7),
         url: it.html_url,
         title: it.commit.message.split("\n")[0],
-        snippet: it.commit.message.slice(0, 300),
+        snippet: it.commit.message.slice(0, SNIPPET_LEN),
       });
+    }
+    const total = res.data.total_count ?? matches.length;
+    if (total > res.data.items.length) {
+      ctx.log(
+        `[github-commits] ${total} commits matched but only the top ${res.data.items.length} were fetched; ` +
+          `narrow the finding (add function/error names) for better recall.`,
+      );
     }
 
     // Silent-fix detection: did the affected file change after the in-scope tag?
@@ -56,7 +64,7 @@ export const githubCommits: Source = {
           url: `https://github.com/${ctx.client.owner}/${ctx.client.repo}/compare/${ctx.finding.scopeTag}...HEAD`,
           title: `Affected file ${hit.filename} changed after ${ctx.finding.scopeTag}`,
           filePath: hit.filename,
-          snippet: (hit.patch ?? "").slice(0, 300),
+          snippet: (hit.patch ?? "").slice(0, SNIPPET_LEN),
           signals: ["silent-fix"],
         });
       }

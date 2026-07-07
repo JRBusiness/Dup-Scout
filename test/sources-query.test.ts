@@ -18,6 +18,34 @@ describe("keyTerms", () => {
     expect(q).not.toContain("the");
     expect(q).toContain(" OR ");
   });
+
+  it("orders distinctive kinds (error/function) before common invariant/pattern words", () => {
+    // Deliberately supply the common invariant first; the result should still
+    // lead with the distinctive identifier/error so the search stays precise.
+    const mixed: WeightedKey[] = [
+      { term: "notification", weight: 4, kind: "invariant" },
+      { term: "reentrancy", weight: 3, kind: "pattern" },
+      { term: "InsufficientBalance", weight: 4, kind: "error" },
+      { term: "claimReward", weight: 5, kind: "function" },
+    ];
+    const q = keyTerms(mixed);
+    const order = ["InsufficientBalance", "claimReward", "notification", "reentrancy"].map((t) =>
+      q.indexOf(t),
+    );
+    // error first, then function, then invariant, then pattern.
+    expect(order[0]).toBeLessThan(order[1]);
+    expect(order[1]).toBeLessThan(order[2]);
+    expect(order[2]).toBeLessThan(order[3]);
+  });
+
+  it("caps the term list (default max 8)", () => {
+    const many: WeightedKey[] = Array.from({ length: 12 }, (_, i) => ({
+      term: `fn${i}`,
+      weight: 5,
+      kind: "function" as const,
+    }));
+    expect(keyTerms(many).split(" OR ")).toHaveLength(8);
+  });
 });
 
 describe("buildQuery", () => {

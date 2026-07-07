@@ -37,6 +37,56 @@ describe("scoreMatch", () => {
     };
     expect(scoreMatch(raw, keys, finding).score).toBeLessThan(THRESHOLDS.partial);
   });
+
+  it("does not let many generic words dilute a strong signal-key match", () => {
+    // A realistic finding: a few distinctive signal keys plus lots of common
+    // filler words (generic). A match that hits ALL the signal keys should
+    // score highly even though it matches none of the generic filler.
+    const dilutedKeys: WeightedKey[] = [
+      { term: "notification", weight: 4, kind: "invariant" },
+      { term: "lifecycle", weight: 4, kind: "invariant" },
+      { term: "overriding", weight: 4, kind: "invariant" },
+      ...Array.from({ length: 12 }, (_, i): WeightedKey => ({
+        term: `word${i}`,
+        weight: 1,
+        kind: "generic",
+      })),
+    ];
+    const raw: RawMatch = {
+      sourceId: "github-issues",
+      id: "#2264",
+      url: "u",
+      title: "Fix transaction lifecycle notifications overriding new status",
+      state: "open",
+      signals: ["security-title"],
+    };
+    const m = scoreMatch(raw, dilutedKeys, { title: "x", description: "" });
+    // All three signal keys hit (notification⊂notifications, lifecycle, overriding),
+    // so the signal-driven base is ~90 before boosts — comfortably PARTIAL-OVERLAP.
+    expect(m.matchedKeys).toEqual(
+      expect.arrayContaining(["notification", "lifecycle", "overriding"]),
+    );
+    expect(m.score).toBeGreaterThanOrEqual(THRESHOLDS.partial);
+  });
+
+  it("scores a generic-only match low", () => {
+    const dilutedKeys: WeightedKey[] = [
+      { term: "notification", weight: 4, kind: "invariant" },
+      { term: "lifecycle", weight: 4, kind: "invariant" },
+      { term: "signaturebug", weight: 4, kind: "invariant" },
+      { term: "transaction", weight: 1, kind: "generic" },
+    ];
+    // Only the generic "transaction" appears; no signal key matches.
+    const raw: RawMatch = {
+      sourceId: "github-prs",
+      id: "#9",
+      url: "u",
+      title: "chore: bump transaction dependency",
+    };
+    expect(scoreMatch(raw, dilutedKeys, { title: "x", description: "" }).score).toBeLessThan(
+      THRESHOLDS.partial,
+    );
+  });
 });
 
 describe("aggregate", () => {

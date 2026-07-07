@@ -5,16 +5,34 @@ export const THRESHOLDS = { report: 45, partial: 55, duplicate: 75 } as const;
 export function scoreMatch(raw: RawMatch, keys: WeightedKey[], finding: Finding): Match {
   const haystack = `${raw.title} ${raw.snippet ?? ""} ${raw.filePath ?? ""}`.toLowerCase();
   const matchedKeys: string[] = [];
-  let overlap = 0;
-  let totalWeight = 0;
+
+  // Score signal keys (function/error/file/invariant/...) separately from
+  // generic filler words. Common words shouldn't dilute a strong match on the
+  // high-value, distinctive keys, so signal coverage drives the base (0..90)
+  // and generic overlap adds only a small bonus (0..10).
+  let signalTotal = 0;
+  let signalHit = 0;
+  let genericTotal = 0;
+  let genericHit = 0;
   for (const k of keys) {
-    totalWeight += k.weight;
-    if (haystack.includes(k.term.toLowerCase())) {
-      overlap += k.weight;
-      matchedKeys.push(k.term);
+    const hit = haystack.includes(k.term.toLowerCase());
+    if (hit) matchedKeys.push(k.term);
+    if (k.kind === "generic") {
+      genericTotal += k.weight;
+      if (hit) genericHit += k.weight;
+    } else {
+      signalTotal += k.weight;
+      if (hit) signalHit += k.weight;
     }
   }
-  let score = totalWeight > 0 ? (overlap / totalWeight) * 100 : 0;
+
+  let score: number;
+  if (signalTotal > 0) {
+    score =
+      (signalHit / signalTotal) * 90 + (genericTotal > 0 ? (genericHit / genericTotal) * 10 : 0);
+  } else {
+    score = genericTotal > 0 ? (genericHit / genericTotal) * 100 : 0;
+  }
 
   const fns = (finding.functions ?? []).map((f) => f.toLowerCase()).filter(Boolean);
   if (fns.some((f) => haystack.includes(f))) score += 15;
