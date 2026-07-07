@@ -15,12 +15,18 @@ describe("makeBudget", () => {
 describe("searchPaged", () => {
   it("stops at maxPages, decrements budget, and flags truncation", async () => {
     const budget = makeBudget(10);
-    const call = vi.fn(async (p: number) => page([p], 250)); // always a full-looking page
+    const fullPage = (p: number) => ({
+      data: {
+        items: Array.from({ length: 100 }, (_, i) => ({ n: p * 1000 + i })),
+        total_count: 250,
+      },
+    });
+    const call = vi.fn(async (p: number) => fullPage(p));
     const r = await searchPaged(call, { maxPages: 2, budget });
     expect(call).toHaveBeenCalledTimes(2);
     expect(budget.remaining).toBe(8);
-    expect(r.truncated).toBe(true); // total 250 > fetched 2
-    expect(r.items).toHaveLength(2);
+    expect(r.truncated).toBe(true); // total 250 > fetched 200
+    expect(r.items).toHaveLength(200);
   });
 
   it("stops early on a short page and is not truncated when total is covered", async () => {

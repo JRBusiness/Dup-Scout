@@ -32,10 +32,7 @@ export async function searchPaged<T>(
     const pageItems = res.data.items ?? [];
     items.push(...pageItems);
     total = res.data.total_count ?? items.length;
-    // Last page reached: the page came back not full AND we've collected
-    // everything the server says exists. A short page alone is not enough to
-    // stop while total_count still reports more results are available.
-    if (pageItems.length < SEARCH_PER_PAGE && items.length >= total) break;
+    if (pageItems.length < SEARCH_PER_PAGE) break; // last page reached
   }
   if (total > items.length) truncated = true;
   return { items, total, truncated };
