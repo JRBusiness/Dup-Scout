@@ -1,10 +1,6 @@
 # Dup-Scout
 
-Prior-art / duplicate checker for bug bounty findings. Point it at a target's
-GitHub repo, describe your finding, and Dup-Scout scans PRs (open/closed/merged),
-issues, commits (including silent fixes after your in-scope tag), releases, and
-web3 audit sources to estimate whether the finding will be flagged
-**duplicate / known-issue / already-fixed** — before you write the report.
+Prior-art / duplicate checker for bug bounty findings. Point it at a target's GitHub repo, describe your finding, and Dup-Scout scans PRs (open/closed/merged), issues, commits (including silent fixes after your in-scope tag), releases, and web3 audit sources to estimate whether the finding will be flagged **duplicate / known-issue / already-fixed** — before you write the report.
 
 ## Install
 
@@ -16,9 +12,7 @@ npx dup-scout <owner/repo> --title "..." --desc "..."
 
 ## Auth
 
-Dup-Scout resolves a GitHub token from (in order): `--token`, `GITHUB_TOKEN`,
-`GH_TOKEN`, then `gh auth token`. Unauthenticated runs work but hit low rate
-limits. A read-only token is sufficient.
+Dup-Scout resolves a GitHub token from (in order): `--token`, `GITHUB_TOKEN`, `GH_TOKEN`, then `gh auth token`. Unauthenticated runs work but hit low rate limits. A read-only token is sufficient.
 
 ## Usage
 
@@ -58,8 +52,7 @@ dup-scout acme/vault --title "..." --keys claim,_settle --dry-run --json
 | `--token <t>`       | GitHub token override                                       |
 | `--fail-on <label>` | Exit non-zero at/above this verdict (`NOVEL` … `DUPLICATE`) |
 
-Invalid `--fail-on` labels and non-numeric `--min-score` values exit with a
-non-zero status instead of being silently ignored.
+Invalid `--fail-on` labels and non-numeric `--min-score` values exit with a non-zero status instead of being silently ignored.
 
 ### Finding markdown format
 
@@ -86,18 +79,13 @@ Bug-Class: reentrancy
 
 ## Sources
 
-`github-prs`, `github-issues`, `github-commits`, `github-releases`,
-`github-code`, `audit-reports`, `contests` (guided). Enable a subset with
-`--sources github-prs,audit-reports`.
+`github-prs`, `github-issues`, `github-commits`, `github-releases`, `github-code`, `audit-reports`, `contests` (guided). Enable a subset with `--sources github-prs,audit-reports`.
 
-> The `contests` source is _guided_: it emits candidate Code4rena / Sherlock /
-> Cantina / Immunefi search URLs to check manually. Provide a fetch hook via the
-> library API to auto-scan them.
+> The `contests` source is _guided_: it emits candidate Code4rena / Sherlock / Cantina / Immunefi search URLs to check manually. Provide a fetch hook via the library API to auto-scan them.
 
 ## Agent integration (Claude Code & Codex)
 
-Register a `/dup-scout` slash command inside both agents so you can run a
-duplicate check without leaving your session:
+Register a `/dup-scout` slash command inside both agents so you can run a duplicate check without leaving your session:
 
 ```bash
 dup-scout install --all     # installs into both Claude Code and Codex
@@ -107,15 +95,13 @@ dup-scout install --codex   # Codex only         (~/.codex/prompts/dup-scout.md)
 dup-scout install --force   # overwrite existing command files
 ```
 
-`install` honours `CLAUDE_CONFIG_DIR` and `CODEX_HOME` if set. It never runs on
-`npm install` — it's an explicit opt-in step. Then, inside either agent:
+`install` honours `CLAUDE_CONFIG_DIR` and `CODEX_HOME` if set. It never runs on `npm install` — it's an explicit opt-in step. Then, inside either agent:
 
 ```
 /dup-scout acme/vault reentrancy in claim() lets an attacker drain the vault
 ```
 
-The command shells out to the `dup-scout` CLI (install it globally first with
-`npm i -g dup-scout`) and summarizes the verdict.
+The command shells out to the `dup-scout` CLI (install it globally first with `npm i -g dup-scout`) and summarizes the verdict.
 
 ## Library use
 
@@ -126,9 +112,8 @@ const verdict = await run({ repo: "acme/vault", finding: { title: "...", descrip
 
 ## Caveats
 
-Dup-Scout estimates duplicate likelihood; it is not a substitute for reading the
-program's scope, known-issues list, and prior-audit clause. Always confirm
-matches by hand before deciding not to submit.
+Dup-Scout estimates duplicate likelihood; it is not a substitute for reading the program's scope, known-issues list, and prior-audit clause. 
+Always confirm matches by hand before deciding not to submit.
 
 ## License
 
