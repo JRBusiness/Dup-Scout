@@ -3,7 +3,10 @@ import { run as engineRun } from "./engine.js";
 import { loadFindingFromFile } from "./finding.js";
 import { renderJson, renderMarkdown, renderTerminal } from "./reporters/index.js";
 import { installCommand, type InstallFs } from "./install.js";
+import { VERDICT_RANK, verdictRank } from "./verdict.js";
 import type { Finding, VerdictLabel } from "./types.js";
+
+export { verdictRank };
 
 export interface CliOptions {
   title?: string;
@@ -29,18 +32,6 @@ export interface CliDeps {
   writeErr?: (s: string) => void;
   exit?: (code: number) => void;
   installFs?: InstallFs;
-}
-
-const RANK: Record<VerdictLabel, number> = {
-  NOVEL: 0,
-  "PARTIAL-OVERLAP": 1,
-  "SILENTLY-FIXED": 2,
-  "KNOWN-ISSUE": 3,
-  DUPLICATE: 4,
-};
-
-export function verdictRank(label: VerdictLabel): number {
-  return RANK[label];
 }
 
 const VALID_FAIL_ON_LABELS = new Set<VerdictLabel>([
@@ -119,7 +110,7 @@ async function runCheck(repo: string, opts: CliOptions, deps: FilledDeps): Promi
   else if (opts.markdown) deps.write(renderMarkdown(verdict));
   else deps.write(renderTerminal(verdict));
 
-  if (failOnThreshold && verdictRank(verdict.label) >= RANK[failOnThreshold]) {
+  if (failOnThreshold && verdictRank(verdict.label) >= VERDICT_RANK[failOnThreshold]) {
     deps.exit(1);
   }
 }
