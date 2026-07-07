@@ -1,5 +1,6 @@
 import type { RawMatch, Source } from "../types.js";
 import { SEARCH_PER_PAGE, SNIPPET_LEN } from "./constants.js";
+import { makeBudget } from "../github/retrieval.js";
 
 interface Release {
   name: string | null;
@@ -16,6 +17,12 @@ export const githubReleases: Source = {
       ctx.log(`[github-releases] list releases for ${ctx.client.owner}/${ctx.client.repo}`);
       return { matches: [] };
     }
+    const budget = ctx.budget ?? makeBudget();
+    if (budget.remaining <= 0) {
+      ctx.log(`[github-releases] skipped (request budget exhausted).`);
+      return { matches: [] };
+    }
+    budget.remaining -= 1;
     const res = await ctx.client.octokit.rest.repos.listReleases({
       owner: ctx.client.owner,
       repo: ctx.client.repo,

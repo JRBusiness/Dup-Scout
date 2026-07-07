@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { githubCommits } from "../src/sources/githubCommits.js";
+import { makeBudget } from "../src/github/retrieval.js";
 import type { SearchContext } from "../src/types.js";
 
 function ctx(opts: {
@@ -26,6 +27,7 @@ function ctx(opts: {
       scopeTag: opts.scopeTag,
     },
     keys: [{ term: "settle", weight: 5, kind: "function" }],
+    budget: makeBudget(40),
     log: () => {},
   } as unknown as SearchContext;
 }
@@ -58,5 +60,36 @@ describe("githubCommits", () => {
     const c = ctx({ commitItems: [] });
     const res = await githubCommits.search(c);
     expect(res.matches.some((m) => m.signals?.includes("silent-fix"))).toBe(false);
+  });
+});
+
+describe("githubCommits per-term retrieval", () => {
+  it("merges commit results across per-term queries, deduped", async () => {
+    const byQuery: Record<string, unknown[]> = {
+      "repo:acme/vault settle OR ROUND_DOWN": [
+        { sha: "aaaaaaa1", html_url: "c1", commit: { message: "chore" } },
+      ],
+      "repo:acme/vault ROUND_DOWN": [
+        { sha: "bbbbbbb2", html_url: "c2", commit: { message: "fix ROUND_DOWN in settle" } },
+      ],
+      "repo:acme/vault settle": [{ sha: "aaaaaaa1", html_url: "c1", commit: { message: "chore" } }],
+    };
+    const commits = vi.fn(async ({ q }: { q: string }) => ({
+      data: { items: byQuery[q] ?? [], total_count: (byQuery[q] ?? []).length },
+    }));
+    const ctx = {
+      client: { owner: "acme", repo: "vault", octokit: { rest: { search: { commits } } } },
+      finding: { title: "settle rounds via ROUND_DOWN", description: "", functions: ["settle"] },
+      keys: [
+        { term: "settle", weight: 5, kind: "function" },
+        { term: "ROUND_DOWN", weight: 6, kind: "selector" },
+      ],
+      budget: makeBudget(40),
+      log: () => {},
+    } as unknown as SearchContext;
+    const res = await githubCommits.search(ctx);
+    const ids = res.matches.map((m) => m.id);
+    expect(ids).toContain("bbbbbbb");
+    expect(new Set(ids).size).toBe(ids.length);
   });
 });

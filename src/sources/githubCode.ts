@@ -1,6 +1,6 @@
 import type { RawMatch, Source } from "../types.js";
-import { keyTerms } from "./query.js";
-import { SEARCH_PER_PAGE } from "./constants.js";
+import { highSignalTerms, keyTerms } from "./query.js";
+import { makeBudget, runSearches } from "../github/retrieval.js";
 
 interface CodeItem {
   path: string;
@@ -11,30 +11,39 @@ export const githubCode: Source = {
   id: "github-code",
   enabledByDefault: true,
   async search(ctx) {
-    const fnTerms = ctx.keys.filter((k) => k.kind === "function").map((k) => k.term);
-    const terms = fnTerms.length > 0 ? fnTerms.join(" OR ") : keyTerms(ctx.keys);
-    const q = `repo:${ctx.client.owner}/${ctx.client.repo} ${terms}`.trim();
+    // Prefer distinctive identifiers for code search; fall back to the OR union.
+    const signal = highSignalTerms(ctx.keys);
+    const base = `repo:${ctx.client.owner}/${ctx.client.repo}`;
+    const queries =
+      signal.length > 0
+        ? signal.map((t) => `${base} ${t}`)
+        : keyTerms(ctx.keys)
+          ? [`${base} ${keyTerms(ctx.keys)}`]
+          : [];
     if (ctx.dryRun) {
-      ctx.log(`[github-code] ${q}`);
+      for (const q of queries) ctx.log(`[github-code] ${q}`);
       return { matches: [] };
     }
+    if (queries.length === 0) return { matches: [] };
     // NOTE: GitHub's `search/code` REST endpoint is deprecated and scheduled for
     // removal (~2026-09-27). This source will need to migrate to the GraphQL
     // search API (or another code-search mechanism) before then.
-    const res = await ctx.client.octokit.rest.search.code({ q, per_page: SEARCH_PER_PAGE });
-    const matches = (res.data.items as CodeItem[]).map((it): RawMatch => ({
+    const budget = ctx.budget ?? makeBudget();
+    const { items, truncated } = await runSearches<CodeItem>(
+      queries,
+      (q, page) => ctx.client.octokit.rest.search.code({ q, per_page: 100, page }),
+      (it) => it.path,
+      { budget },
+    );
+    const matches = items.map((it): RawMatch => ({
       sourceId: "github-code",
       id: it.path,
       url: it.html_url,
       title: `code: ${it.path}`,
       filePath: it.path,
     }));
-    const total = res.data.total_count ?? matches.length;
-    if (total > matches.length) {
-      ctx.log(
-        `[github-code] ${total} code hits matched but only the top ${matches.length} were fetched; ` +
-          `narrow the finding (add function/error names) for better recall.`,
-      );
+    if (truncated) {
+      ctx.log(`[github-code] result set was truncated (rate/page/budget limit).`);
     }
     return { matches };
   },

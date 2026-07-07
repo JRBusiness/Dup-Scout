@@ -1,6 +1,7 @@
 import type { RawMatch, Source } from "../types.js";
-import { keyTerms } from "./query.js";
-import { SEARCH_PER_PAGE, SNIPPET_LEN } from "./constants.js";
+import { queriesFor } from "./query.js";
+import { SNIPPET_LEN } from "./constants.js";
+import { makeBudget, runSearches } from "../github/retrieval.js";
 
 interface CommitItem {
   sha: string;
@@ -18,10 +19,10 @@ export const githubCommits: Source = {
   enabledByDefault: true,
   async search(ctx) {
     const matches: RawMatch[] = [];
-    const q = `repo:${ctx.client.owner}/${ctx.client.repo} ${keyTerms(ctx.keys)}`.trim();
+    const queries = queriesFor(ctx, "");
 
     if (ctx.dryRun) {
-      ctx.log(`[github-commits] search: ${q}`);
+      for (const q of queries) ctx.log(`[github-commits] search: ${q}`);
       if (ctx.finding.scopeTag && ctx.finding.file) {
         ctx.log(
           `[github-commits] compare: ${ctx.finding.scopeTag}...HEAD path=${ctx.finding.file}`,
@@ -30,8 +31,14 @@ export const githubCommits: Source = {
       return { matches: [] };
     }
 
-    const res = await ctx.client.octokit.rest.search.commits({ q, per_page: SEARCH_PER_PAGE });
-    for (const it of res.data.items as CommitItem[]) {
+    const budget = ctx.budget ?? makeBudget();
+    const { items, truncated } = await runSearches<CommitItem>(
+      queries,
+      (q, page) => ctx.client.octokit.rest.search.commits({ q, per_page: 100, page }),
+      (it) => it.sha,
+      { budget },
+    );
+    for (const it of items) {
       matches.push({
         sourceId: "github-commits",
         id: it.sha.slice(0, 7),
@@ -40,11 +47,10 @@ export const githubCommits: Source = {
         snippet: it.commit.message.slice(0, SNIPPET_LEN),
       });
     }
-    const total = res.data.total_count ?? matches.length;
-    if (total > res.data.items.length) {
+    if (truncated) {
       ctx.log(
-        `[github-commits] ${total} commits matched but only the top ${res.data.items.length} were fetched; ` +
-          `narrow the finding (add function/error names) for better recall.`,
+        `[github-commits] result set was truncated (rate/page/budget limit); ` +
+          `add distinctive terms (function/error names) for better recall.`,
       );
     }
 
