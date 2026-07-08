@@ -1,6 +1,6 @@
 # Dup-Scout
 
-Prior-art / duplicate checker for bug bounty findings. Point it at a target's GitHub repo, describe your finding, and Dup-Scout scans PRs (open/closed/merged), issues, commits (including silent fixes after your in-scope tag), releases, and web3 audit sources to estimate whether the finding will be flagged **duplicate / known-issue / already-fixed** — before you write the report.
+Dup-Scout checks whether a bug bounty finding looks like prior art before you write the report. Point it at a GitHub repo, describe the finding, and it scans PRs, issues, commits, releases, and web3 audit sources for likely duplicate, known issue, or already fixed matches.
 
 ## Install
 
@@ -34,23 +34,23 @@ dup-scout acme/vault --title "..." --keys claim,_settle --dry-run --json
 
 ### Options
 
-| Flag                | Description                                                 |
-| ------------------- | ----------------------------------------------------------- |
-| `--title <s>`       | Finding title (required unless `--finding` is used)         |
-| `--desc <s>`        | Finding description                                         |
-| `--finding <file>`  | Load the finding from a `.json` or `.md` file               |
-| `--file <path>`     | Affected source file                                        |
-| `--function <name>` | Affected function name(s); repeatable                       |
-| `--keys <a,b,c>`    | Extra search keys (comma-separated)                         |
-| `--scope-tag <tag>` | In-scope tag for silent-fix detection                       |
-| `--bug-class <s>`   | Bug class (e.g. `reentrancy`)                               |
-| `--sources <ids>`   | Comma-separated source ids to enable                        |
-| `--min-score <n>`   | Minimum match score to report (numeric)                     |
-| `--json`            | Output JSON                                                 |
-| `--markdown`        | Output a markdown "Duplicate check" block                   |
-| `--dry-run`         | Print the queries that would run without calling the API    |
-| `--token <t>`       | GitHub token override                                       |
-| `--fail-on <label>` | Exit non-zero at/above this verdict (`NOVEL` … `DUPLICATE`) |
+| Flag                | Description                                                       |
+| ------------------- | ----------------------------------------------------------------- |
+| `--title <s>`       | Finding title (required unless `--finding` is used)               |
+| `--desc <s>`        | Finding description                                               |
+| `--finding <file>`  | Load the finding from a `.json` or `.md` file                     |
+| `--file <path>`     | Affected source file                                              |
+| `--function <name>` | Affected function name(s); repeatable                             |
+| `--keys <a,b,c>`    | Extra search keys (comma-separated)                               |
+| `--scope-tag <tag>` | In-scope tag for silent-fix detection                             |
+| `--bug-class <s>`   | Bug class (e.g. `reentrancy`)                                     |
+| `--sources <ids>`   | Comma-separated source ids to enable                              |
+| `--min-score <n>`   | Minimum match score to report (numeric)                           |
+| `--json`            | Output JSON                                                       |
+| `--markdown`        | Output a markdown "Duplicate check" block                         |
+| `--dry-run`         | Print the queries that would run without calling the API          |
+| `--token <t>`       | GitHub token override                                             |
+| `--fail-on <label>` | Exit non-zero at/above this verdict (`NOVEL` through `DUPLICATE`) |
 
 Invalid `--fail-on` labels and non-numeric `--min-score` values exit with a non-zero status instead of being silently ignored.
 
@@ -74,7 +74,7 @@ Bug-Class: reentrancy
 | `DUPLICATE`       | Same function + root cause already in a merged PR / closed issue / contest finding       |
 | `KNOWN-ISSUE`     | Acknowledged / won't-fix in a past audit report                                          |
 | `SILENTLY-FIXED`  | Affected file changed after your in-scope tag (check the program's undeployed-fix rules) |
-| `PARTIAL-OVERLAP` | Same bug class, different location — argue distinctness                                  |
+| `PARTIAL-OVERLAP` | Same bug class, different location; argue distinctness                                   |
 | `NOVEL`           | No qualifying prior art found in enabled sources                                         |
 
 ## Sources
@@ -95,7 +95,7 @@ dup-scout install --codex   # Codex only         (~/.codex/prompts/dup-scout.md)
 dup-scout install --force   # overwrite existing command files
 ```
 
-`install` honours `CLAUDE_CONFIG_DIR` and `CODEX_HOME` if set. It never runs on `npm install` — it's an explicit opt-in step. Then, inside either agent:
+`install` honours `CLAUDE_CONFIG_DIR` and `CODEX_HOME` if set. It never runs on `npm install`; it only runs when you call it. Then, inside either agent:
 
 ```
 /dup-scout acme/vault reentrancy in claim() lets an attacker drain the vault
@@ -105,7 +105,7 @@ The command shells out to the `dup-scout` CLI (install it globally first with `n
 
 ## Benchmark
 
-Dup-Scout ships a deterministic benchmark that proves recall + verdict quality:
+Dup-Scout includes a deterministic benchmark for recall and verdict accuracy:
 
 ```bash
 npm run bench        # replay recorded fixtures, compute Recall@K + verdict accuracy (CI gate)

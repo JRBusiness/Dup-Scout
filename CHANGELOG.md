@@ -2,24 +2,23 @@
 
 ## 1.0.1
 
-- added new benchmark target set with `monero-oxide/monero-oxide` cases:
-  recorded checks now cover `monero-daemon-rpc` contiguous block retrieval,
-  `SimpleRequestTransport` debug credential leakage, and a Monero-Oxide
-  true-negative fixture.
+- Added `monero-oxide/monero-oxide` benchmark cases for `monero-daemon-rpc`
+  contiguous block retrieval and `SimpleRequestTransport` debug credential
+  leakage. The negative fixture now uses the same repo.
 
 ## 1.0.0
 
-- **Per-term merged retrieval**: each GitHub search source now issues one scoped
-  query per high-signal term (plus a broad OR query) and merges/dedups results,
-  so the exact prior-art item surfaces even when GitHub's relevance ranking
-  buries it in a broad query. Bounded by a per-run request budget with octokit
-  throttling/retry; truncation is logged, never silent.
-- **High-signal key extraction**: recognizes enums (`SCREAMING_SNAKE`), selectors
-  (`0x…`), PascalCase error/type names, and camelCase/`_snake` identifiers, and
-  weights them highest so queries and scoring key off the distinctive strings.
-- **Benchmark harness**: a deterministic recorded-fixture benchmark
-  (`npm run bench`) measures Recall@K and verdict accuracy against labeled cases
-  and gates regressions in CI; `npm run bench:live` refreshes fixtures.
+- Per-term retrieval: each GitHub search source now runs one scoped query per
+  high-signal term, plus a broad OR query, then merges and deduplicates results.
+  This helps exact prior-art items surface even when GitHub ranks them low in a
+  broad query. A per-run request budget bounds the work, and truncation is
+  logged.
+- High-signal key extraction: recognizes enums (`SCREAMING_SNAKE`), selectors
+  (`0x...`), PascalCase error/type names, and camelCase or `_snake` identifiers.
+  These terms carry the most weight in queries and scoring.
+- Benchmark harness: `npm run bench` replays recorded fixtures and measures
+  Recall@K plus verdict accuracy against labeled cases. CI runs it as a
+  regression check. `npm run bench:live` refreshes fixtures from GitHub.
 - Earlier scoring/recall tuning from the v0.1 line is folded in.
 
 ## 0.1.0

@@ -15,7 +15,7 @@ Finding context from the user: $ARGUMENTS
 
 Steps:
 1. Determine the target GitHub repo (owner/repo) and a short finding title,
-   description, and — if known — the affected file, function(s), and in-scope tag.
+   description, and, if known, the affected file, function(s), and in-scope tag.
 2. Run the checker, for example:
    \`dup-scout <owner/repo> --title "<title>" --desc "<desc>" --file <path> --function <name> --markdown\`
 3. Read the verdict (DUPLICATE / KNOWN-ISSUE / SILENTLY-FIXED / PARTIAL-OVERLAP /
@@ -29,7 +29,7 @@ Finding context from the user: $ARGUMENTS
 
 Steps:
 1. Determine the target GitHub repo (owner/repo), a short finding title and
-   description, and — if known — the affected file, function(s), and in-scope tag.
+   description, and, if known, the affected file, function(s), and in-scope tag.
 2. Run: dup-scout <owner/repo> --title "<title>" --desc "<desc>" --file <path> --function <name> --markdown
 3. Read the verdict (DUPLICATE / KNOWN-ISSUE / SILENTLY-FIXED / PARTIAL-OVERLAP /
    NOVEL) and evidence table. Say whether it is safe to submit, cite the strongest

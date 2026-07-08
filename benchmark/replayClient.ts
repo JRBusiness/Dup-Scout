@@ -38,12 +38,12 @@ function setPath(root: Record<string, unknown>, dotted: string, fn: unknown): vo
 
 // Characters of a body/message/patch the sources ever read (src SNIPPET_LEN).
 // Recording the full multi-KB bodies GitHub returns bloats fixtures to tens of
-// MB; projecting each response down to the exact fields the sources consume —
-// with text sliced to the prefix they read — keeps replay byte-for-byte
-// behaviourally identical while shrinking the committed fixtures ~10x. This is
-// real recorded data, projected at record time; nothing is fabricated.
-// Slicing at the source's SNIPPET_LEN locks the fidelity invariant: fixtures
-// keep exactly the prefix the sources consume, no more, no less.
+// MB. The recorder keeps only the fields the sources read, with long text cut
+// to the same prefix used during scoring. Replay stays behaviorally identical
+// while committed fixtures stay small. The data is still recorded from GitHub;
+// only unused fields are stripped.
+// Slicing at the source's SNIPPET_LEN keeps fixtures at the same boundary the
+// sources consume.
 const slim = (v: unknown): string | unknown =>
   typeof v === "string" ? v.slice(0, SNIPPET_LEN) : v;
 

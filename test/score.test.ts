@@ -61,8 +61,9 @@ describe("scoreMatch", () => {
       signals: ["security-title"],
     };
     const m = scoreMatch(raw, dilutedKeys, { title: "x", description: "" });
-    // All three signal keys hit (notification⊂notifications, lifecycle, overriding),
-    // so the signal-driven base is ~90 before boosts — comfortably PARTIAL-OVERLAP.
+    // All three signal keys hit (notification within notifications, lifecycle,
+    // overriding), so the signal-driven base is around 90 before boosts. That is
+    // comfortably PARTIAL-OVERLAP.
     expect(m.matchedKeys).toEqual(
       expect.arrayContaining(["notification", "lifecycle", "overriding"]),
     );

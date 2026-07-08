@@ -1,6 +1,6 @@
 import type { KeyKind, SearchContext, WeightedKey } from "../types.js";
 
-// Higher = rarer / more distinctive → better search precision. Identifiers,
+// Higher = rarer or more distinctive, which improves search precision. Identifiers,
 // custom errors, and selectors uniquely pin a bug; common invariant/pattern
 // words (e.g. "notification", "signature") match hundreds of unrelated items,
 // so they go last and get dropped first when the term list is capped.
@@ -56,8 +56,8 @@ export function highSignalTerms(keys: WeightedKey[], max = 6): string[] {
 // GitHub's search API rejects a query with "More than five AND / OR / NOT
 // operators" (HTTP 422). N OR-joined terms use N-1 operators, so the broad
 // union query is capped at 6 terms (5 operators) to stay valid. Exceeding it
-// makes the broad query 422 — and because it runs first, that error would
-// otherwise abort the whole source before the scoped per-term queries run.
+// makes the broad query 422. Because it runs first, that error would otherwise
+// abort the whole source before the scoped per-term queries run.
 export const MAX_BROAD_TERMS = 6;
 
 // One broad OR union query plus one scoped query per high-signal term, all
