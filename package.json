@@ -1,6 +1,6 @@
 {
   "name": "dup-scout",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Prior-art / duplicate checker for bug bounty findings — scans a target repo's PRs, issues, commits, releases, and web3 audit sources.",
   "type": "module",
   "license": "MIT",

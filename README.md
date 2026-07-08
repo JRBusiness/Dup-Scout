@@ -127,33 +127,6 @@ const verdict = await run({ repo: "acme/vault", finding: { title: "...", descrip
 Dup-Scout estimates duplicate likelihood; it is not a substitute for reading the program's scope, known-issues list, and prior-audit clause.
 Always confirm matches by hand before deciding not to submit.
 
-## Releasing to npm
-
-This repo publishes from GitHub Actions using npm trusted publishing, so no long-lived `NPM_TOKEN` secret is required.
-
-Before the first release, create or claim the package on npm and configure trusted publishing:
-
-1. In npm, open the `dup-scout` package settings and add a GitHub Actions trusted publisher.
-2. Use GitHub owner/user `JRBusiness`, repository `Dup-Scout`, and workflow filename `release.yml`.
-3. Allow `npm publish`. Leave the environment name blank unless you also add a matching GitHub environment to the workflow.
-
-To cut a release:
-
-```bash
-npm version patch
-git push origin main --follow-tags
-```
-
-Use `minor` or `major` instead of `patch` when appropriate. The pushed `vX.Y.Z` tag triggers `.github/workflows/release.yml`, which runs lint, tests, build, a dry-run package check, verifies the tag matches `package.json`, and publishes to npm.
-
-For a local preflight without publishing:
-
-```bash
-npm run lint
-npm test
-npm run pack:check
-```
-
 ## License
 
 MIT

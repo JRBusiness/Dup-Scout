@@ -1,0 +1,12 @@
+{
+  "name": "monero-daemon-rpc-contiguous-blocks",
+  "repo": "monero-oxide/monero-oxide",
+  "finding": {
+    "title": "monero-daemon-rpc batch contiguous blocks fetched with wrong loop bound",
+    "description": "The contiguous_blocks batch JSON-RPC fetch uses start <= end rather than number <= end, so batch-enabled servers can return incorrect block ranges.",
+    "file": "monero-oxide/interface/daemon/src/blocks.rs",
+    "keys": ["contiguous_blocks", "batch", "JSON-RPC", "start", "end", "number", "blocks"],
+    "bugClass": "logic"
+  },
+  "expect": { "knownItemIds": ["#168"], "minVerdict": "PARTIAL-OVERLAP", "topK": 10 }
+}

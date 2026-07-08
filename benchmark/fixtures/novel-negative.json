@@ -1,0 +1,152 @@
+{
+  "calls": {
+    "repos.listReleases::{\"owner\":\"monero-oxide\",\"per_page\":100,\"repo\":\"monero-oxide\"}": {
+      "ok": true,
+      "data": []
+    },
+    "repos.getContent::{\"owner\":\"monero-oxide\",\"path\":\"audits\",\"repo\":\"monero-oxide\"}": {
+      "ok": true,
+      "data": [
+        {
+          "name": "Cypher Stack May 2025",
+          "path": "audits/Cypher Stack May 2025",
+          "sha": "089a389185c8b52c0c7d6600dba499785a51451c",
+          "size": 0,
+          "url": "https://api.github.com/repos/monero-oxide/monero-oxide/contents/audits/Cypher%20Stack%20May%202025?ref=main",
+          "html_url": "https://github.com/monero-oxide/monero-oxide/tree/main/audits/Cypher%20Stack%20May%202025",
+          "git_url": "https://api.github.com/repos/monero-oxide/monero-oxide/git/trees/089a389185c8b52c0c7d6600dba499785a51451c",
+          "download_url": null,
+          "type": "dir",
+          "_links": {
+            "self": "https://api.github.com/repos/monero-oxide/monero-oxide/contents/audits/Cypher%20Stack%20May%202025?ref=main",
+            "git": "https://api.github.com/repos/monero-oxide/monero-oxide/git/trees/089a389185c8b52c0c7d6600dba499785a51451c",
+            "html": "https://github.com/monero-oxide/monero-oxide/tree/main/audits/Cypher%20Stack%20May%202025"
+          }
+        },
+        {
+          "name": "FROSTLASS",
+          "path": "audits/FROSTLASS",
+          "sha": "6948ee20ad2381f644c87dfbe95005fa97017d6d",
+          "size": 0,
+          "url": "https://api.github.com/repos/monero-oxide/monero-oxide/contents/audits/FROSTLASS?ref=main",
+          "html_url": "https://github.com/monero-oxide/monero-oxide/tree/main/audits/FROSTLASS",
+          "git_url": "https://api.github.com/repos/monero-oxide/monero-oxide/git/trees/6948ee20ad2381f644c87dfbe95005fa97017d6d",
+          "download_url": null,
+          "type": "dir",
+          "_links": {
+            "self": "https://api.github.com/repos/monero-oxide/monero-oxide/contents/audits/FROSTLASS?ref=main",
+            "git": "https://api.github.com/repos/monero-oxide/monero-oxide/git/trees/6948ee20ad2381f644c87dfbe95005fa97017d6d",
+            "html": "https://github.com/monero-oxide/monero-oxide/tree/main/audits/FROSTLASS"
+          }
+        }
+      ]
+    },
+    "repos.getContent::{\"owner\":\"monero-oxide\",\"path\":\"audit\",\"repo\":\"monero-oxide\"}": {
+      "ok": false,
+      "status": 404,
+      "message": "Not Found - https://docs.github.com/rest/repos/contents#get-repository-content"
+    },
+    "repos.getContent::{\"owner\":\"monero-oxide\",\"path\":\"docs/audits\",\"repo\":\"monero-oxide\"}": {
+      "ok": false,
+      "status": 404,
+      "message": "Not Found - https://docs.github.com/rest/repos/contents#get-repository-content"
+    },
+    "repos.getContent::{\"owner\":\"monero-oxide\",\"path\":\"security\",\"repo\":\"monero-oxide\"}": {
+      "ok": false,
+      "status": 404,
+      "message": "Not Found - https://docs.github.com/rest/repos/contents#get-repository-content"
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:pr fluxcapacitor OR tachyonbuffer OR nonsense\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 0,
+        "incomplete_results": false,
+        "items": []
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:issue fluxcapacitor OR tachyonbuffer OR nonsense\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 0,
+        "incomplete_results": false,
+        "items": []
+      }
+    },
+    "search.commits::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide fluxcapacitor OR tachyonbuffer OR nonsense\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 0,
+        "items": []
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:pr fluxcapacitor\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 0,
+        "incomplete_results": false,
+        "items": []
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:issue fluxcapacitor\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 0,
+        "incomplete_results": false,
+        "items": []
+      }
+    },
+    "search.commits::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide fluxcapacitor\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 0,
+        "items": []
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:pr tachyonbuffer\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 0,
+        "incomplete_results": false,
+        "items": []
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:issue tachyonbuffer\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 0,
+        "incomplete_results": false,
+        "items": []
+      }
+    },
+    "search.commits::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide tachyonbuffer\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 0,
+        "items": []
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:pr nonsense\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 0,
+        "incomplete_results": false,
+        "items": []
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:issue nonsense\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 0,
+        "incomplete_results": false,
+        "items": []
+      }
+    },
+    "search.commits::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide nonsense\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 0,
+        "items": []
+      }
+    }
+  }
+}

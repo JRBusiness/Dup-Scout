@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.1
+
+- added new benchmark target set with `monero-oxide/monero-oxide` cases:
+  recorded checks now cover `monero-daemon-rpc` contiguous block retrieval,
+  `SimpleRequestTransport` debug credential leakage, and a Monero-Oxide
+  true-negative fixture.
+
 ## 1.0.0
 
 - **Per-term merged retrieval**: each GitHub search source now issues one scoped

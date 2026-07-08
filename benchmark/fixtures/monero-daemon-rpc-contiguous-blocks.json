@@ -1,0 +1,922 @@
+{
+  "calls": {
+    "repos.getContent::{\"owner\":\"monero-oxide\",\"path\":\"audits\",\"repo\":\"monero-oxide\"}": {
+      "ok": true,
+      "data": [
+        {
+          "name": "Cypher Stack May 2025",
+          "path": "audits/Cypher Stack May 2025",
+          "sha": "089a389185c8b52c0c7d6600dba499785a51451c",
+          "size": 0,
+          "url": "https://api.github.com/repos/monero-oxide/monero-oxide/contents/audits/Cypher%20Stack%20May%202025?ref=main",
+          "html_url": "https://github.com/monero-oxide/monero-oxide/tree/main/audits/Cypher%20Stack%20May%202025",
+          "git_url": "https://api.github.com/repos/monero-oxide/monero-oxide/git/trees/089a389185c8b52c0c7d6600dba499785a51451c",
+          "download_url": null,
+          "type": "dir",
+          "_links": {
+            "self": "https://api.github.com/repos/monero-oxide/monero-oxide/contents/audits/Cypher%20Stack%20May%202025?ref=main",
+            "git": "https://api.github.com/repos/monero-oxide/monero-oxide/git/trees/089a389185c8b52c0c7d6600dba499785a51451c",
+            "html": "https://github.com/monero-oxide/monero-oxide/tree/main/audits/Cypher%20Stack%20May%202025"
+          }
+        },
+        {
+          "name": "FROSTLASS",
+          "path": "audits/FROSTLASS",
+          "sha": "6948ee20ad2381f644c87dfbe95005fa97017d6d",
+          "size": 0,
+          "url": "https://api.github.com/repos/monero-oxide/monero-oxide/contents/audits/FROSTLASS?ref=main",
+          "html_url": "https://github.com/monero-oxide/monero-oxide/tree/main/audits/FROSTLASS",
+          "git_url": "https://api.github.com/repos/monero-oxide/monero-oxide/git/trees/6948ee20ad2381f644c87dfbe95005fa97017d6d",
+          "download_url": null,
+          "type": "dir",
+          "_links": {
+            "self": "https://api.github.com/repos/monero-oxide/monero-oxide/contents/audits/FROSTLASS?ref=main",
+            "git": "https://api.github.com/repos/monero-oxide/monero-oxide/git/trees/6948ee20ad2381f644c87dfbe95005fa97017d6d",
+            "html": "https://github.com/monero-oxide/monero-oxide/tree/main/audits/FROSTLASS"
+          }
+        }
+      ]
+    },
+    "repos.listReleases::{\"owner\":\"monero-oxide\",\"per_page\":100,\"repo\":\"monero-oxide\"}": {
+      "ok": true,
+      "data": []
+    },
+    "repos.getContent::{\"owner\":\"monero-oxide\",\"path\":\"audit\",\"repo\":\"monero-oxide\"}": {
+      "ok": false,
+      "status": 404,
+      "message": "Not Found - https://docs.github.com/rest/repos/contents#get-repository-content"
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:pr monero-oxide/interface/daemon/src/blocks.rs OR blocks OR contiguous_blocks OR JSON-RPC OR number OR batch\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 9,
+        "incomplete_results": false,
+        "items": [
+          {
+            "number": 139,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/139",
+            "title": "Introduce a `const fn` hash-to-point",
+            "state": "open",
+            "body": "Removes the `monero-bulletproofs-generators` crate and `monero-bulletproofs` `build.rs`. This is solely intended as an experiment and unfortunately cannot be merged without significant algorithmic improvements to it itself or Rust's `const fn` evaluation.\r\n\r\nRemoval of `batch_sqrt` for the addition chain\r\n(https://github.com/monero-oxide/monero-oxide/issues/131) would have similar computational requirements with a fraction of the memory, and may be worthwhile.\r\n\r\n#128 related.",
+            "pull_request": {
+              "merged_at": null
+            }
+          },
+          {
+            "number": 166,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/166",
+            "title": "perf(wallet): optimize scanner hot path with ECDH caching and allocation-free hashing",
+            "state": "open",
+            "body": "Summary\r\nThis PR improves wallet scanning performance by reducing work in the scanner hot path:\r\n- Avoid redundant ECDH derivations per output by reusing ECDH per tx key\r\n- Check the view tag first and only compute the shared key when the view tag matches\r\n- Reduce allocations in hashing/derivation paths (streaming Keccak where inputs are naturally segmented)\r\n- Use stack-based VarInt encoding in the hot path to avoid Vec growth\r\n\r\nWhat changed\r\n- wallet scanning:\r\n  1) Cache ECDH (view_scalar * tx_pub_key) per transaction key\r\n  2) Compute view tag first; compute shared key only on tag match\r\n  3) Use incremental hashing to avoid allocating concatenated buffers\r\n  4) Avoid heap allocations for small encodings (VarInt)\r\n\r\nBenchmarks\r\n~80k blocks (restore height -> tip) against a local LAN monerod:\r\n- Before: ~6m 19s total\r\n- After:  ~4m 36s total\r\nScanner time dominates and drops proportionally (~370s -> ~267s).\r\n\r\nNotes\r\n- This PR is scanner-only performance work (no validation/leniency behavior changes).\r\n- Review feedback welcome on the ECDH cache data structure and any preferred API patterns for allocation-free hashing.",
+            "pull_request": {
+              "merged_at": null
+            }
+          },
+          {
+            "number": 66,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/66",
+            "title": "New `monero-rpc` candidate",
+            "state": "closed",
+            "body": "Smashes the monolithic `monero-rpc::Rpc` trait into several.\r\n\r\nMoves the code expecting a Monero daemon into its own `monero-daemon-rpc`, which remains transport agnostic.\r\n\r\nCloses #3, #34, #41 (albeit with a distinct library), #62, #65, #74, #91, and makes progress on #81.\r\n\r\n---\r\n\r\nThis does add bounds to the HTTP requests. Unfortunately, any bounds potentially introduce incorrect behavior. Monero has no maximum block size, so limiting the size of blocks received over the RPC potentially means not supporting the Monero protocol. Additionally, we don't have estimates for how large responses are, even if we have estimates for how large the data we _want_ within the response is. This RPC allows disabling bounds accordingly for those who prefer to ensure correctness.\r\n\r\nThis code sets a base response size of 64 KB, then assumes JSON has an 8x overhead (due to the encoding, schema). Finally, all requests are limited by monerod's limit (100 MB). We also adopt some policy rules, including ones which won't go active until FCMP++, to establish some sane bounds where none were prior present.\r\n\r\n---\r\n\r\nThis PR DOES NOT introduce Cuprate's RPC types library (#43). It uses its own types entirely. Given how few they are for the API we want to provide, how we use different epee libraries, and #81, I believe this will be the best path forward overall, so we should also be able to close #43.\r\n\r\n---\r\n\r\nI replaced \"RPC\" with \"Interface\", as it may be a local DB (not a Remote Procedure Call). `Blockchain` may be better, as this is to connect to and view the Monero blockchain?",
+            "pull_request": {
+              "merged_at": "2026-01-07T14:48:58Z"
+            }
+          },
+          {
+            "number": 165,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/165",
+            "title": "perf(wallet): optimize scanner hot path with ECDH caching and BIN path compatibility",
+            "state": "closed",
+            "body": "This PR improves wallet scanning performance ~40 minutes to ~4 minutes 20 seconds from height 3,519,450 to 3,596,738 on local LAN WiFi monero node.\r\n\r\nChanges\r\n\r\n**Scanner optimizations:**\r\n- Add ECDH cache per transaction to avoid redundant scalar multiplications\r\n- Split view-tag check from shared-key derivation for early rejection\r\n- Use streaming Keccak256 to avoid heap allocations\r\n- Use stack-based VarInt encoding\r\n\r\n**BIN path compatibility:**\r\n- Add `walletcore-lenient-prunable` and `walletcore-lenient-tx-verify` feature flags\r\n- When enabled, the binary RPC path accepts missing/zero prunable hashes instead of falling back to slow JSON RPC\r\n- Related: https://github.com/monero-project/monero/issues/10120\r\n\r\n### Usage\r\n\r\nEnable the lenient features in your Cargo.toml:\r\n\r\nmonero-interface = { ..., features = [\"walletcore-lenient-prunable\", \"walletcore-lenient-tx-verify\"] }\r\nmonero-daemon-rpc = { ..., features = [\"walletcore-lenient-prunable\"] }",
+            "pull_request": {
+              "merged_at": null
+            }
+          },
+          {
+            "number": 109,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/109",
+            "title": "feat: add `get_blocks_by_height.bin` call to rpc",
+            "state": "closed",
+            "body": "I originally implemented this for [libsaketo](https://github.com/monumexyz/libsaketo), but thought it would benefit everybody else.\r\n\r\nThis PR implements the `get_blocks_by_height.bin` call in the rpc crate. May work on and implement others if this type of workflow is OK.",
+            "pull_request": {
+              "merged_at": null
+            }
+          },
+          {
+            "number": 85,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/85",
+            "title": "Ensure `miner_transaction` includes the block's number",
+            "state": "closed",
+            "body": "I don't love this oddity of having `miner_transaction` alone be private, yet we don't to check every field of the block at this level, and I quite dislike `Block::number` only being infallible for invalid blocks. This also should minimally affect consumers, while `Block::number` not being infallible should prevent a decent amount of `unwrap`s in consumers.\r\n\r\nBuilds on #84 as they'd immediately conflict otherwise.\r\n\r\nDoes modify `monero-rpc` which #66 replaces, so one will conflict with the other, but should be trivial to fix. The new RPC code already checked all yielded `Block`s had a declared number as part of its sanity checks.",
+            "pull_request": {
+              "merged_at": "2025-09-24T12:52:18Z"
+            }
+          },
+          {
+            "number": 84,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/84",
+            "title": "Respect the maximum amount of transactions when reading blocks",
+            "state": "closed",
+            "body": null,
+            "pull_request": {
+              "merged_at": "2025-09-22T13:03:12Z"
+            }
+          },
+          {
+            "number": 140,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/140",
+            "title": "Miscellaneous updates and bug fixes",
+            "state": "closed",
+            "body": "It's probably best to review each commit individually.",
+            "pull_request": {
+              "merged_at": "2025-11-24T22:16:03Z"
+            }
+          },
+          {
+            "number": 97,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/97",
+            "title": "Introduce `UpperBound`, `LowerBound` to represent bounds",
+            "state": "closed",
+            "body": "The docstrings on the structs are quite extensive, and we want them applied to all instantiations of a bound. Copying these docstrings everywhere would be annoying. This seemed to be the best solution.",
+            "pull_request": {
+              "merged_at": "2025-10-06T21:29:09Z"
+            }
+          }
+        ]
+      }
+    },
+    "repos.getContent::{\"owner\":\"monero-oxide\",\"path\":\"docs/audits\",\"repo\":\"monero-oxide\"}": {
+      "ok": false,
+      "status": 404,
+      "message": "Not Found - https://docs.github.com/rest/repos/contents#get-repository-content"
+    },
+    "repos.getContent::{\"owner\":\"monero-oxide\",\"path\":\"security\",\"repo\":\"monero-oxide\"}": {
+      "ok": false,
+      "status": 404,
+      "message": "Not Found - https://docs.github.com/rest/repos/contents#get-repository-content"
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:issue monero-oxide/interface/daemon/src/blocks.rs OR blocks OR contiguous_blocks OR JSON-RPC OR number OR batch\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 18,
+        "incomplete_results": false,
+        "items": [
+          {
+            "number": 101,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/101",
+            "title": "Fetch contiguous blocks in parallel",
+            "state": "open",
+            "body": "#66 implements a `contiguous_blocks` function premised on a batch request to the JSON-RPC 2.0 server within Monero. Unfortunately, Monero's JSON-RPC 2.0 server is incomplete and does not support batch requests (https://github.com/monero-project/monero/issues/10118), a feature/bug fix I do not expect someone to pick up anytime soon :/\n\nWe fall back to making individual requests in a serial fashion. Obviously, as is within an `async` environment, we can fire several requests at once and `await` then all together. This will presumably spawn multiple connections (one for each active request), and is not the preferable solution, yet it's likely the best solution we have at this time.\n\nThen, for `contiguous_scannable_blocks`, we use `get_blocks.bin` UNLESS that is broken (https://github.com/monero-project/monero/issues/10120). In that case, we fall back to `contiguous_blocks` + `/get_transactions`, currently making one call to `/get_transactions` per block. We should _at least_ similarly handle these `/get_transactions` calls in parallel, but it'd better to make a single request for the entire list across all blocks (letting our `pruned_transactions` manage the splitting of the requests as optimal)."
+          },
+          {
+            "number": 168,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/168",
+            "title": "`monero-daemon-rpc` does not fetch `contiguous_blocks` from batch-enabled JSON-RPC servers correctly",
+            "state": "closed",
+            "body": "@rootkid19 reported to our GitHub Security program how https://github.com/monero-oxide/monero-oxide/blob/a941dfff1a5333b6349d9a1ee5de49c158b0e3d2/monero-oxide/interface/daemon/src/blocks.rs#L93-L114 is incorrect, using `start <= end` instead of `number <= end`. This was ruled not a security issue, as this would be caught by the validation layer and _solely_ behave as an ephemeral liveness issue for servers _which do not exist at this time_. Monero's JSON-RPC server _does not support these requests_.\n\nWe should fix the immediate bug, which is a one-line change, but also we should shim our own JSON-RPC server which:\n \n- Takes batch requests\n- Decomposes the batch to a series of individual requests\n- Composes the responses into a single response, with a random order\n\nand run all of our tests against it in order to validate the `monero-daemon-rpc` code for such servers does actually work. It's currently untested as no such servers exist to test against at this time. It should be trivial to write such middleware however."
+          },
+          {
+            "number": 81,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/81",
+            "title": "`serde_json` within `monero-daemon-rpc`",
+            "state": "open",
+            "body": "`monero-rpc` used `serde_json` and a bespoke `epee` decoder for a single RPC which was only available in binary. With #66, `monero-rpc` has been reworked significantly into `monero-interface` (which should be applicable to anything and everything) and `monero-daemon-rpc` (which expects to talk with a Monero node over HTTP, using JSON and `epee` to do so). `monero-daemon-rpc` fleshed out the bespoke `epee` decoder, which was atrocious, into a properly compliant decoder which should be immediate to review and argue the safety of. The only caveat is that it doesn't actually decode anything, it solely returns the bytes representing a field for the caller to decode. This is generally immediate and avoids having to define an equivalent of `serde_json::Value` (runtime-typed dynamic value premised on `HashMap` and allocations) or a macro, though it does lead to ~260 lines of bespoke decoding functionality for the actual end results we want (on top of a <400 line decoder).\n\n#41 discusses replacing `monero-rpc`'s bespoke `epee` decoder, and I don't plan to hijack it here more now that this existing premise has been discussed. Instead, I want to turn the attention to `serde_json`.\n\nThe work dtolnay does for the Rust ecosystem is undeniable, and `serde` has been of incredible utility. Unfortunately, `serde` and `serde_json` are still rather large dependencies, which led to even dtolnay themselves writing [`miniserde`](https://github.com/dtolnay/miniserde):\n\n> The implementation is less code by a factor of 12 compared to serde + serde_derive + serde_json, and less code even than the json crate which provides no derive macro and cannot manipulate strongly typed data.\n\n> Without monomorphization, the derived impls compile lightning fast and occupy very little size in the executable.\n\n> In miniserde neither serialization nor deserialization involves recursion. You can safely process arbitrarily nested data without being exposed to stack overflows. Not even the Drop impl of our json"
+          },
+          {
+            "number": 130,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/130",
+            "title": "Implement batched scanning for outputs",
+            "state": "open",
+            "body": "Calculating the hash of the ECDH requires compressing the point, which requires calculating an inverse. We can use a batch point compression to amortize the cost of the inner inverses to near zero."
+          },
+          {
+            "number": 128,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/128",
+            "title": "Support a batched hash-to-point",
+            "state": "open",
+            "body": "https://github.com/kayabaNerve/monero-oxide/blob/const-hash-to-point/monero-oxide/ed25519/src/hash_to_point demonstrates a `const fn` (irrelevant here for now, it was an experiment didn't pan out) hash-to-point as one hash, a few square roots, and four inversions.\n\nThe inversions can be batched, which at scale, likely saves roughly 50% of the total cost.\n\nThis would notably speed up ring signature verification and somewhat speed up syncing."
+          },
+          {
+            "number": 132,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/132",
+            "title": "Batch inverses across FCMPs, not just within an FCMP",
+            "state": "open",
+            "body": "The same would also also accelerate the BPs used as range proofs."
+          },
+          {
+            "number": 71,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/71",
+            "title": "Offer a synchronous alternative to `monero-rpc`",
+            "state": "open",
+            "body": "This has primarily been requested by @spirobel. Personally, I'm against it as even with a local database, asynchronous behavior still makes sense as it's still an IO operation. There also are no-std async runtime, and push comes to shove, a blocking async call can be used if the code is known to be synchronous.\n\nIf we can offer it immediately via the usage of something like https://crates.io/crates/trait-variant, or via a `hazmat` feature, I'm not fundamentally opposed to it though."
+          },
+          {
+            "number": 146,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/146",
+            "title": "API for fetching transaction status",
+            "state": "open",
+            "body": "We should provide an API to fetch the status of transactions.\n\nThe `ProvidesTransactions` trait fetches transactions but does not capture `block_height` or `in_pool` from the response. It only parses the transaction data itself.\n\nUsers of that (new) API would have to know that they are trusting the daemon to provide them correct data. `wallet2::check_tx_key` does the same though so I believe this is to be expected."
+          },
+          {
+            "number": 171,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/171",
+            "title": "Helios and Selene Points",
+            "state": "open",
+            "body": "Hello Kayaba!\n\nI have just started my quest to understand the magic world of FCMP++ ! First, I started looking at the Helios and Selene curves and at your implementation from the monero-oxide repo and I executed the code below:\n\n```\n  let A_S = SelenePoint::random(&mut OsRng);\n  println!(\"Random Selene: \");\n  println!(\"{:?}\", A_S);\n\n  let xb = FieldElement::from_u256(&U256::from_u8(1));\n  let yb = FieldElement::from_u256(&U256::from_be_hex(\"611dffc62fe02c759e5ac10f40e009b8e3b147387068aaf810dbdf2d817c67ba\"));\n  let HB = HeliosPoint::from_xy(xb,yb).unwrap();\n  println!(\"Base point Helios: \");\n  println!(\"{:?}\", HB);\n\n  println!(\"Base point Helios to xy: \");\n  println!(\"{:?}\", HeliosPoint::to_xy(HB));\n```\nWith the following results:\n\n```\nRandom Selene: \nSelenePoint { x: HelioseleneField(Uint(0x4D343E8268D9CFAC48962AA201E55E3AE9ABE777F66C2885D1F5E8EF16609DBA)), y: HelioseleneField(Uint(0x2B469A6C3C4410E63823E5E75BF3EA497B6B9C95E2E7D95FD6566A44228ADB9B)), z: HelioseleneField(Uint(0x0000000000000000000000000000000000000000000000000000000000000001)) }\nBase point Helios: \nHeliosPoint { x: FieldElement(Residue { montgomery_form: Uint(0x0000000000000000000000000000000000000000000000000000000000000026), phantom: PhantomData<dalek_ff_group::field::FieldModulus> }), y: FieldElement(Residue { montgomery_form: Uint(0x6A73F76B1B4699758178A843A1417171CC509260AF8960D280A320C1387767B0), phantom: PhantomData<dalek_ff_group::field::FieldModulus> }), z: FieldElement(Residue { montgomery_form: Uint(0x0000000000000000000000000000000000000000000000000000000000000026), phantom: PhantomData<dalek_ff_group::field::FieldModulus> }) }\nBase point Helios to xy: \nSome((FieldElement(Residue { montgomery_form: Uint(0x0000000000000000000000000000000000000000000000000000000000000026), phantom: PhantomData<dalek_ff_group::field::FieldModulus> }), FieldElement(Residue { montgomery_form: Uint(0x6A73F76B1B4699758178A843A1417171CC509260AF8960D280A320C1387767B0), phantom: PhantomData<dalek_ff_group::field::F"
+          },
+          {
+            "number": 52,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/52",
+            "title": "Clarify `assert!` vs `debug_assert!`",
+            "state": "open",
+            "body": "In the current `monero-oxide` libraries, we currently only `assert!` in the following cases:\n\n- `keccak256` outputs `0`. This ensures we don't accept a proof Monero would reject. While we could return an error, so we don't panic upon proofs Monero would reject, this has a negligible probability.\n- If the Bulletproofs+ code is (internally) asked for a number of generators which isn't a power of two.\n- If the Bulletproofs+ code is (internally) asked to multiply two vectors of different lengths.\n- If the Merkle tree code fails to successfully handle the right-most edge until its remaining elements are of length a power of two.\n\nAll of these can be clearly justified as unreachable. However, we have plenty more `debug_assert!` which can also be so justified. Why not promote them to `assert!`, a question raised by @Boog900, who cited [Rust's official guidance](https://doc.rust-lang.org/std/macro.debug_assert.html#uses).\n\nWe should probably adopt Rust's policy and issue a PR going through, and promoting, `debug_assert!` with sufficient documentation they are justified and unreachable."
+          },
+          {
+            "number": 150,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/150",
+            "title": "RPC rewrite accepts JSON-encoded arguments as a `String`",
+            "state": "closed",
+            "body": "#81 had the midstep of removing the JSON library from the API, making the choice of JSON library solely an implementation detail. This had the side-effect of requiring JSON arguments be UTF-8, when under [RFC 8259](https://datatracker.ietf.org/doc/html/rfc8259), JSON is not required to be UTF-8.\n\nBeyond the technicality here, Monero is special as having a non-JSON JSON which includes arbitrary binary data inline. While these methods are proposed for deprecation/removal (https://github.com/monero-project/monero/issues/9422), they still require consideration.\n\nI believe the consideration resolves as \"stupid methods are stupid, JSON should be UTF-8, won't fix\" and plan to close this immediately after opening. I just wanted this tracked/documented."
+          },
+          {
+            "number": 34,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/34",
+            "title": "Support for batch RPC requests",
+            "state": "closed",
+            "body": "The `rpc` and `simple-request-rpc` should expose methods to batch download a set of blocks and or transactions.\n\nAnalogous to `get_scannable_block` there should be a method `get_scannable_blocks`. The batch methods need to use `/get_blocks_by_height.bin` and `/get_blocks.bin` under the hood."
+          },
+          {
+            "number": 131,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/131",
+            "title": "Implement batched point deserialization",
+            "state": "closed",
+            "body": "https://github.com/kayabaNerve/monero-oxide/blob/007eb4050ad5deae4085f21b6220e74f7c9ba4cf/monero-oxide/ed25519/src/hash_to_point/mod.rs#L55-L98 implements a batch point deserialization for Ed25519, replacing the standard multiplications needed for a exponentation with a multiplicative inverse (leaving the squares untouched).\n\nThis could likely notably speed up scanning, ring decompressing, Bulletproofs deserialization. For FCMPs, if a similar technique is applied to Helios/Selene, this would save 20%."
+          },
+          {
+            "number": 91,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/91",
+            "title": "`monero-daemon-rpc` has inconsistently-defined size bounds inherited from `monerod`",
+            "state": "closed",
+            "body": "https://github.com/monero-project/monero/commit/ec74ff4a3d3ca38b7912af680209a45fd1701c3d introduced a HTTP response size limit of 100 MB. This is itself reasonable, except for how Monero's blocks are of a variable size and how this may prevent downloading even just a single block. Additionally, there's a maximum amount of blocks allowed per request, but if those blocks happen to be larger than the response size limit, the connection will be terminated.\n\nOur best solution is three-fold:\n1) Incorporate the 100 MB response size limit\n2) Define the maximum amount of transactions per request as a function of the maximum amount of transactions allowed per request _and_ the response size limit. While there is currently no limit on a transaction's size, FCMP++ will incorporate a limit of [10,000 outputs to coinbase transactions](https://github.com/seraphis-migration/monero/pull/104) which will let us define one.\n3) Don't request the limit per request of contiguous blocks. Instead, scale the limit upwards from `1`, and then whenever the limit is endangered, scale back down\n\nCuprate itself does this last item when downloading blocks over the P2P network: https://github.com/monero-project/monero/commit/ec74ff4a3d3ca38b7912af680209a45fd1701c3d"
+          },
+          {
+            "number": 62,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/62",
+            "title": "Size of HTTP responses are unbounded",
+            "state": "closed",
+            "body": "While we can never truly handle OOM, we can still set reasonable bounds for most items. The concern will be when we get to blocks when there is no consensus-defined size limit, and accordingly we _have_ to support unbounded responses to support all theoretical Monero blocks.\n\nMaybe this should be configurable at the `monero-simple-request-rpc` level?"
+          },
+          {
+            "number": 144,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/144",
+            "title": "Timelock does not enforce `Timelock::Block` is below the limit",
+            "state": "closed",
+            "body": "Timelock is a public enum which allows setting `Timelock::Block` > `500,000,000`. When a block number this large is written and read again it will be interpreted as a `Timelock::Time`."
+          },
+          {
+            "number": 99,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/99",
+            "title": "`9` is used for the maximum length of a `u64` VarInt in size hints, recently added bounds declarations",
+            "state": "closed",
+            "body": "It isn't 9, it's 10, as 9 bytes (in a VarInt) each with 7 bits available only offer 63 bits. This means a 64-bit number requires more space (a 10th byte)."
+          },
+          {
+            "number": 38,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/38",
+            "title": "simple-request-rpc rejects trailing slash in url",
+            "state": "closed",
+            "body": "The `url` crate (widely used) by default appends a trailing slash when calling `.to_string()` on a `Url`. The provided `simple-request-rpc` (implements the `Rpc` trait) fails all its requests when constructing the `SimpleRequestRpc` with a url with a trailing slash.\n\nThis behaviour should either be documented or the client should trim trailing slashes in the constructor."
+          }
+        ]
+      }
+    },
+    "search.commits::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide monero-oxide/interface/daemon/src/blocks.rs OR blocks OR contiguous_blocks OR JSON-RPC OR number OR batch\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 6,
+        "items": [
+          {
+            "sha": "cae84b7b16051ac8bf92ed151aad49b9e6f4fcae",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/cae84b7b16051ac8bf92ed151aad49b9e6f4fcae",
+            "commit": {
+              "message": "New `monero-rpc` candidate (#66)\n\n* Split `ProvidesTransactions` out of `Rpc`\n\nResolves https://github.com/monero-oxide/monero-oxide/issues/3.\n\nCandidate for the rewrite discussed in\nhttps://github.com/monero-oxide/monero-oxide/issues/34.\n\n* Split `ProvidesBlockchain` out of `Rpc`\n\nIntroduces APIs to get blocks in batches, resolving the originally stated issue\nof https://github.com/monero-oxide/monero-oxide/issues/34.\n\n* Move `generate_blocks` from `Rpc` to `MoneroDaemon`\n\n* Introduce `ProvidesBlockchainMeta`, `PublishTransaction`\n\n* Split out the fee API from `Rpc`\n\nFixes https://github.com/monero-oxide/monero-oxide/issues/65.\n\n* Move `get_o_indexes` to `ProvidesOutputs`\n\n* `ProvidesScannableBlocks` abstraction\n\nNot currently implemented as it practically requires `get_blocks.bin`, which we\ndon't support.\n\n* Trim `get_output_distribution_end_height` in favor of `ProvidesBlockchainMeta`\n\nShrinks `ProvidesBlockchainMeta` by removing `get_hardfork_version` and moving\n`get_block_hash` to `ProvidesBlockchain`.\n\n* Move `DecoyRpc::get_outs` to `ProvidesOutputs::get_ringct_outputs`\n\n* ProvidesDecoys\n\n* Remove `get_` prefix from RPC methods\n\n* Rework erros in `monero-rpc`\n\n* Remove untrusted input from error messages\n\nThis ensures they're safe to log.\n\n* Bound HTTP response sizes to prevent a malicious Monero node which actually replies with a several GB response\n\n* Correct rebase\n\nEffectively re-applies 75a5048bc6e8ff7012eeb8f208716e16979323ba and\nb8263ce4b04ad8cc018a30bcacabc24c7ab94246.\n\n* Fix `no-std` builds of `monero-rpc`\n\n* Attempt fix for prunable hashes not lining up\n\n* Clarify bounds in the `monero_daemon` module\n\n* Rename `monero-rpc` to `monero-interface`\n\nThis is no longer solely for _Remote_ Procedure Calls, and `monero-rpc` is\nalready a published crate.\n\n* Rename \"Source\" terminology to \"Interface\"\n\n* Move `interface/src/monero_daemon.rs` to `interface/daemon`\n\nIt has almost no relation to the rest of the library and we aren't benefited by\nits inclusion.\n\nRem"
+            }
+          },
+          {
+            "sha": "9f2cf5379ffe8b2d6b39286b9de8030c4fe9f8b5",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/9f2cf5379ffe8b2d6b39286b9de8030c4fe9f8b5",
+            "commit": {
+              "message": "Add sanity check on the inputs of a miner transaction to make `Block::number` infallible (#85)"
+            }
+          },
+          {
+            "sha": "946ec5f00ff071b129758ee8cba5528539fccfe4",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/946ec5f00ff071b129758ee8cba5528539fccfe4",
+            "commit": {
+              "message": "Misc Updates, Bug Fixes (#178)\n\n* `cargo update`, tighten GH Actions\n\n* Correct an erroneous comment for `monero_wallet::GuaranteedViewPair`\n\nThis claims the view key is non-zero, when it isn't actually so bound, and that\nisn't required for the security of the guaranteed scheme.\n\n* Break out of the outer loop when `remaining_blocks == 0`\n\nThe addition at the end of the outer loop's body could trap if\n`remaining_blocks == 0`. We already did `break`, but solely out of the inner\nloop.\n\nIn practice, this required an absurd request _and_ malicious RPC response.\n\n* Make `FeeRate::calculate_fee_from_weight` infallible by returning a `u128`\n\nI don't love the `unwrap`s in `SignableTransaction`, but `validate` does ensure\ntheir validity AFAICT. `validate` does check the transaction's weight\n(indirectly) before calling this method to calculate the weight, fee.\n\nIn the future, having (internally) `UnvalidatedSignableTransaction` may be\nuseful. Specifically, we want to ensure `validate` (an associated method) is\nalways called before certain other associated methods are. The current\ntimelines are messy in that regard. Ideally, we also have fallible methods for\n`UnvalidatedSignableTransaction` and infallible ones for `SignableTransaction`\n(as now with these spot `unwrap`s, but without the proper clarity).\n\n* Move `MAX_ITERS` for decoy selection into the inner loop\n\n* Correct bound on if decoy selection would fail\n\nThis would terminate when the remaining candidates were less than the ring\nlength, when it should be if the remaining candidates were less than the\nnecessary amount of remaining selections.\n\nThe former bound isn't an issue, only a concern on fresh chains (such as in\ntesting), in which case this was just mildly incomplete.\n\n* Fix https://github.com/monero-oxide/monero-oxide/issues/168\n\nI also tidied this method a bit and added documentation about why certain\narithmetic operations won't trap.\n\n* Fix selecting decoys from the very first block in the distribution\n\n* Rust 1.9"
+            }
+          },
+          {
+            "sha": "a647e007de126c5dcfab1774111027dbb5b1ae6a",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/a647e007de126c5dcfab1774111027dbb5b1ae6a",
+            "commit": {
+              "message": "Respect the maximum amount of transactions when reading blocks (#84)\n\n* Respect the maximum amount of transactions when reading blocks\n\n* Also add missing bound regarding inputs per transaction"
+            }
+          },
+          {
+            "sha": "b6d3e44c50ae2e932bcb95a2059410310a86ad2f",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/b6d3e44c50ae2e932bcb95a2059410310a86ad2f",
+            "commit": {
+              "message": "Rollup of miscealleanous commits (#155)\n\n* Fix acceptance of non-canonically-encoded partial blocks when decoding Base58\n\n* Fix potential overflow in the Base58 decoder\n\n* Update LICENSE files for 2026\n\n* Rust 1.92.0, nightly-2026-01-01, `cargo update`\n\n* `profile = \"abort\"`, `overflow-checks = true`\n\n* Reject identity/torsion points from scan/signing\n\nThis is part of https://github.com/monero-oxide/monero-oxide/issues/120. While\nit doesn't fix the incompleteness in CLSAG, it resolves some of the additional\nnotes I raised in a comment on the issue.\n\n* Update CI\n\nExpands the integration tests to also run on macOS, Windows.\n\nDocuments what versions were pinned to when pinning by hash.\n\nRemoves the `monthly-nightly-update` workflow as the GitHub secrets were never\nconfigured for it.\n\nVarious version bumps.\n\n* Fix the definition of `MergeMining`\n\nCloses https://github.com/monero-oxide/monero-oxide/issues/149.\n\n* Document `ExtraField::Nonce`'s usage of a `VarInt` length prefix\n\n* Write `Extra` in a sorted fashion\n\n`monero-wallet` constructed its `Extra` in a sorted fashion, making this\nunnecessary for `monero-wallet`. It's a safer design decision which better\npromotes external usability however.\n\nTo avoid a `clone`, or to require a mutable reference, the implementation works\non a `n`-pass algorithm, where `n` is the amount of types of fields within\n`Extra`.\n\n* Restrict `ExtraField::Padding`'s field to the class of valid values for it\n\n* Update lints\n\nEnables certain off-by-default lints within the Rust compiler itself.\n\nWe prior enabled a subset of pedantic lints. We now enable the entire pedantic\nlint group, making `clippy` much more annoying, before disabling the specific\nlints which aren't beneficial.\n\nThe style lint group is also enabled, as is a subset of restrictions.\n\nThe changes these effect are visible in the flood of changes to just about\nevery file in the repository. While this commit is annoying, I believe the\nupdated code to observably be of higher quality.\n"
+            }
+          },
+          {
+            "sha": "fc4fa24fa276321ff330a9bac786aec4328753aa",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/fc4fa24fa276321ff330a9bac786aec4328753aa",
+            "commit": {
+              "message": "Updates to the Merkle tree (#104)\n\n* Update `merkle_root` to not perform any allocations\n\nPrior, the function would allocate for the new layer of the tree, causing\nmemory consumption to increase by up to 50% of the size of the input. This is\nunecessary, as demonstrated by this commit.\n\nIt'd also perform a bunch of small allocations (64 bytes) for every single\npairing, which is now replaced with 64-bytes on the stack.\n\nThis isn't performance critical code, so this should be minor, but it's good to\nhave done. I also increased the documentation. Hopefully, with FCMP++, we can\nenforce no transactions are less than 64 bytes so long as every miner\ntransaction had an extra of >20 bytes or so? (as CARROT will make each output\nlarger than 64 bytes)\n\nThis also updates the calculation of `low_pow_2` in a way which hanndles if\n`leaves.len()`'s MSB is set, superseding my commits in\nhttps://github.com/monero-oxide/monero-oxide/pull/94.\n\n* Add test for and document the properties of the preimage for the hash defined for block 202,612\n\n* Add disclaimer to `serialize_pow_hash` regarding block #202,612"
+            }
+          }
+        ]
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:pr monero-oxide/interface/daemon/src/blocks.rs\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 0,
+        "incomplete_results": false,
+        "items": []
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:issue monero-oxide/interface/daemon/src/blocks.rs\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 1,
+        "incomplete_results": false,
+        "items": [
+          {
+            "number": 168,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/168",
+            "title": "`monero-daemon-rpc` does not fetch `contiguous_blocks` from batch-enabled JSON-RPC servers correctly",
+            "state": "closed",
+            "body": "@rootkid19 reported to our GitHub Security program how https://github.com/monero-oxide/monero-oxide/blob/a941dfff1a5333b6349d9a1ee5de49c158b0e3d2/monero-oxide/interface/daemon/src/blocks.rs#L93-L114 is incorrect, using `start <= end` instead of `number <= end`. This was ruled not a security issue, as this would be caught by the validation layer and _solely_ behave as an ephemeral liveness issue for servers _which do not exist at this time_. Monero's JSON-RPC server _does not support these requests_.\n\nWe should fix the immediate bug, which is a one-line change, but also we should shim our own JSON-RPC server which:\n \n- Takes batch requests\n- Decomposes the batch to a series of individual requests\n- Composes the responses into a single response, with a random order\n\nand run all of our tests against it in order to validate the `monero-daemon-rpc` code for such servers does actually work. It's currently untested as no such servers exist to test against at this time. It should be trivial to write such middleware however."
+          }
+        ]
+      }
+    },
+    "search.commits::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide monero-oxide/interface/daemon/src/blocks.rs\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 1,
+        "items": [
+          {
+            "sha": "cae84b7b16051ac8bf92ed151aad49b9e6f4fcae",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/cae84b7b16051ac8bf92ed151aad49b9e6f4fcae",
+            "commit": {
+              "message": "New `monero-rpc` candidate (#66)\n\n* Split `ProvidesTransactions` out of `Rpc`\n\nResolves https://github.com/monero-oxide/monero-oxide/issues/3.\n\nCandidate for the rewrite discussed in\nhttps://github.com/monero-oxide/monero-oxide/issues/34.\n\n* Split `ProvidesBlockchain` out of `Rpc`\n\nIntroduces APIs to get blocks in batches, resolving the originally stated issue\nof https://github.com/monero-oxide/monero-oxide/issues/34.\n\n* Move `generate_blocks` from `Rpc` to `MoneroDaemon`\n\n* Introduce `ProvidesBlockchainMeta`, `PublishTransaction`\n\n* Split out the fee API from `Rpc`\n\nFixes https://github.com/monero-oxide/monero-oxide/issues/65.\n\n* Move `get_o_indexes` to `ProvidesOutputs`\n\n* `ProvidesScannableBlocks` abstraction\n\nNot currently implemented as it practically requires `get_blocks.bin`, which we\ndon't support.\n\n* Trim `get_output_distribution_end_height` in favor of `ProvidesBlockchainMeta`\n\nShrinks `ProvidesBlockchainMeta` by removing `get_hardfork_version` and moving\n`get_block_hash` to `ProvidesBlockchain`.\n\n* Move `DecoyRpc::get_outs` to `ProvidesOutputs::get_ringct_outputs`\n\n* ProvidesDecoys\n\n* Remove `get_` prefix from RPC methods\n\n* Rework erros in `monero-rpc`\n\n* Remove untrusted input from error messages\n\nThis ensures they're safe to log.\n\n* Bound HTTP response sizes to prevent a malicious Monero node which actually replies with a several GB response\n\n* Correct rebase\n\nEffectively re-applies 75a5048bc6e8ff7012eeb8f208716e16979323ba and\nb8263ce4b04ad8cc018a30bcacabc24c7ab94246.\n\n* Fix `no-std` builds of `monero-rpc`\n\n* Attempt fix for prunable hashes not lining up\n\n* Clarify bounds in the `monero_daemon` module\n\n* Rename `monero-rpc` to `monero-interface`\n\nThis is no longer solely for _Remote_ Procedure Calls, and `monero-rpc` is\nalready a published crate.\n\n* Rename \"Source\" terminology to \"Interface\"\n\n* Move `interface/src/monero_daemon.rs` to `interface/daemon`\n\nIt has almost no relation to the rest of the library and we aren't benefited by\nits inclusion.\n\nRem"
+            }
+          }
+        ]
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:pr blocks\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 5,
+        "incomplete_results": false,
+        "items": [
+          {
+            "number": 166,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/166",
+            "title": "perf(wallet): optimize scanner hot path with ECDH caching and allocation-free hashing",
+            "state": "open",
+            "body": "Summary\r\nThis PR improves wallet scanning performance by reducing work in the scanner hot path:\r\n- Avoid redundant ECDH derivations per output by reusing ECDH per tx key\r\n- Check the view tag first and only compute the shared key when the view tag matches\r\n- Reduce allocations in hashing/derivation paths (streaming Keccak where inputs are naturally segmented)\r\n- Use stack-based VarInt encoding in the hot path to avoid Vec growth\r\n\r\nWhat changed\r\n- wallet scanning:\r\n  1) Cache ECDH (view_scalar * tx_pub_key) per transaction key\r\n  2) Compute view tag first; compute shared key only on tag match\r\n  3) Use incremental hashing to avoid allocating concatenated buffers\r\n  4) Avoid heap allocations for small encodings (VarInt)\r\n\r\nBenchmarks\r\n~80k blocks (restore height -> tip) against a local LAN monerod:\r\n- Before: ~6m 19s total\r\n- After:  ~4m 36s total\r\nScanner time dominates and drops proportionally (~370s -> ~267s).\r\n\r\nNotes\r\n- This PR is scanner-only performance work (no validation/leniency behavior changes).\r\n- Review feedback welcome on the ECDH cache data structure and any preferred API patterns for allocation-free hashing.",
+            "pull_request": {
+              "merged_at": null
+            }
+          },
+          {
+            "number": 109,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/109",
+            "title": "feat: add `get_blocks_by_height.bin` call to rpc",
+            "state": "closed",
+            "body": "I originally implemented this for [libsaketo](https://github.com/monumexyz/libsaketo), but thought it would benefit everybody else.\r\n\r\nThis PR implements the `get_blocks_by_height.bin` call in the rpc crate. May work on and implement others if this type of workflow is OK.",
+            "pull_request": {
+              "merged_at": null
+            }
+          },
+          {
+            "number": 66,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/66",
+            "title": "New `monero-rpc` candidate",
+            "state": "closed",
+            "body": "Smashes the monolithic `monero-rpc::Rpc` trait into several.\r\n\r\nMoves the code expecting a Monero daemon into its own `monero-daemon-rpc`, which remains transport agnostic.\r\n\r\nCloses #3, #34, #41 (albeit with a distinct library), #62, #65, #74, #91, and makes progress on #81.\r\n\r\n---\r\n\r\nThis does add bounds to the HTTP requests. Unfortunately, any bounds potentially introduce incorrect behavior. Monero has no maximum block size, so limiting the size of blocks received over the RPC potentially means not supporting the Monero protocol. Additionally, we don't have estimates for how large responses are, even if we have estimates for how large the data we _want_ within the response is. This RPC allows disabling bounds accordingly for those who prefer to ensure correctness.\r\n\r\nThis code sets a base response size of 64 KB, then assumes JSON has an 8x overhead (due to the encoding, schema). Finally, all requests are limited by monerod's limit (100 MB). We also adopt some policy rules, including ones which won't go active until FCMP++, to establish some sane bounds where none were prior present.\r\n\r\n---\r\n\r\nThis PR DOES NOT introduce Cuprate's RPC types library (#43). It uses its own types entirely. Given how few they are for the API we want to provide, how we use different epee libraries, and #81, I believe this will be the best path forward overall, so we should also be able to close #43.\r\n\r\n---\r\n\r\nI replaced \"RPC\" with \"Interface\", as it may be a local DB (not a Remote Procedure Call). `Blockchain` may be better, as this is to connect to and view the Monero blockchain?",
+            "pull_request": {
+              "merged_at": "2026-01-07T14:48:58Z"
+            }
+          },
+          {
+            "number": 84,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/84",
+            "title": "Respect the maximum amount of transactions when reading blocks",
+            "state": "closed",
+            "body": null,
+            "pull_request": {
+              "merged_at": "2025-09-22T13:03:12Z"
+            }
+          },
+          {
+            "number": 85,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/85",
+            "title": "Ensure `miner_transaction` includes the block's number",
+            "state": "closed",
+            "body": "I don't love this oddity of having `miner_transaction` alone be private, yet we don't to check every field of the block at this level, and I quite dislike `Block::number` only being infallible for invalid blocks. This also should minimally affect consumers, while `Block::number` not being infallible should prevent a decent amount of `unwrap`s in consumers.\r\n\r\nBuilds on #84 as they'd immediately conflict otherwise.\r\n\r\nDoes modify `monero-rpc` which #66 replaces, so one will conflict with the other, but should be trivial to fix. The new RPC code already checked all yielded `Block`s had a declared number as part of its sanity checks.",
+            "pull_request": {
+              "merged_at": "2025-09-24T12:52:18Z"
+            }
+          }
+        ]
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:issue blocks\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 7,
+        "incomplete_results": false,
+        "items": [
+          {
+            "number": 101,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/101",
+            "title": "Fetch contiguous blocks in parallel",
+            "state": "open",
+            "body": "#66 implements a `contiguous_blocks` function premised on a batch request to the JSON-RPC 2.0 server within Monero. Unfortunately, Monero's JSON-RPC 2.0 server is incomplete and does not support batch requests (https://github.com/monero-project/monero/issues/10118), a feature/bug fix I do not expect someone to pick up anytime soon :/\n\nWe fall back to making individual requests in a serial fashion. Obviously, as is within an `async` environment, we can fire several requests at once and `await` then all together. This will presumably spawn multiple connections (one for each active request), and is not the preferable solution, yet it's likely the best solution we have at this time.\n\nThen, for `contiguous_scannable_blocks`, we use `get_blocks.bin` UNLESS that is broken (https://github.com/monero-project/monero/issues/10120). In that case, we fall back to `contiguous_blocks` + `/get_transactions`, currently making one call to `/get_transactions` per block. We should _at least_ similarly handle these `/get_transactions` calls in parallel, but it'd better to make a single request for the entire list across all blocks (letting our `pruned_transactions` manage the splitting of the requests as optimal)."
+          },
+          {
+            "number": 146,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/146",
+            "title": "API for fetching transaction status",
+            "state": "open",
+            "body": "We should provide an API to fetch the status of transactions.\n\nThe `ProvidesTransactions` trait fetches transactions but does not capture `block_height` or `in_pool` from the response. It only parses the transaction data itself.\n\nUsers of that (new) API would have to know that they are trusting the daemon to provide them correct data. `wallet2::check_tx_key` does the same though so I believe this is to be expected."
+          },
+          {
+            "number": 71,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/71",
+            "title": "Offer a synchronous alternative to `monero-rpc`",
+            "state": "open",
+            "body": "This has primarily been requested by @spirobel. Personally, I'm against it as even with a local database, asynchronous behavior still makes sense as it's still an IO operation. There also are no-std async runtime, and push comes to shove, a blocking async call can be used if the code is known to be synchronous.\n\nIf we can offer it immediately via the usage of something like https://crates.io/crates/trait-variant, or via a `hazmat` feature, I'm not fundamentally opposed to it though."
+          },
+          {
+            "number": 168,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/168",
+            "title": "`monero-daemon-rpc` does not fetch `contiguous_blocks` from batch-enabled JSON-RPC servers correctly",
+            "state": "closed",
+            "body": "@rootkid19 reported to our GitHub Security program how https://github.com/monero-oxide/monero-oxide/blob/a941dfff1a5333b6349d9a1ee5de49c158b0e3d2/monero-oxide/interface/daemon/src/blocks.rs#L93-L114 is incorrect, using `start <= end` instead of `number <= end`. This was ruled not a security issue, as this would be caught by the validation layer and _solely_ behave as an ephemeral liveness issue for servers _which do not exist at this time_. Monero's JSON-RPC server _does not support these requests_.\n\nWe should fix the immediate bug, which is a one-line change, but also we should shim our own JSON-RPC server which:\n \n- Takes batch requests\n- Decomposes the batch to a series of individual requests\n- Composes the responses into a single response, with a random order\n\nand run all of our tests against it in order to validate the `monero-daemon-rpc` code for such servers does actually work. It's currently untested as no such servers exist to test against at this time. It should be trivial to write such middleware however."
+          },
+          {
+            "number": 34,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/34",
+            "title": "Support for batch RPC requests",
+            "state": "closed",
+            "body": "The `rpc` and `simple-request-rpc` should expose methods to batch download a set of blocks and or transactions.\n\nAnalogous to `get_scannable_block` there should be a method `get_scannable_blocks`. The batch methods need to use `/get_blocks_by_height.bin` and `/get_blocks.bin` under the hood."
+          },
+          {
+            "number": 91,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/91",
+            "title": "`monero-daemon-rpc` has inconsistently-defined size bounds inherited from `monerod`",
+            "state": "closed",
+            "body": "https://github.com/monero-project/monero/commit/ec74ff4a3d3ca38b7912af680209a45fd1701c3d introduced a HTTP response size limit of 100 MB. This is itself reasonable, except for how Monero's blocks are of a variable size and how this may prevent downloading even just a single block. Additionally, there's a maximum amount of blocks allowed per request, but if those blocks happen to be larger than the response size limit, the connection will be terminated.\n\nOur best solution is three-fold:\n1) Incorporate the 100 MB response size limit\n2) Define the maximum amount of transactions per request as a function of the maximum amount of transactions allowed per request _and_ the response size limit. While there is currently no limit on a transaction's size, FCMP++ will incorporate a limit of [10,000 outputs to coinbase transactions](https://github.com/seraphis-migration/monero/pull/104) which will let us define one.\n3) Don't request the limit per request of contiguous blocks. Instead, scale the limit upwards from `1`, and then whenever the limit is endangered, scale back down\n\nCuprate itself does this last item when downloading blocks over the P2P network: https://github.com/monero-project/monero/commit/ec74ff4a3d3ca38b7912af680209a45fd1701c3d"
+          },
+          {
+            "number": 62,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/62",
+            "title": "Size of HTTP responses are unbounded",
+            "state": "closed",
+            "body": "While we can never truly handle OOM, we can still set reasonable bounds for most items. The concern will be when we get to blocks when there is no consensus-defined size limit, and accordingly we _have_ to support unbounded responses to support all theoretical Monero blocks.\n\nMaybe this should be configurable at the `monero-simple-request-rpc` level?"
+          }
+        ]
+      }
+    },
+    "search.commits::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide blocks\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 6,
+        "items": [
+          {
+            "sha": "946ec5f00ff071b129758ee8cba5528539fccfe4",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/946ec5f00ff071b129758ee8cba5528539fccfe4",
+            "commit": {
+              "message": "Misc Updates, Bug Fixes (#178)\n\n* `cargo update`, tighten GH Actions\n\n* Correct an erroneous comment for `monero_wallet::GuaranteedViewPair`\n\nThis claims the view key is non-zero, when it isn't actually so bound, and that\nisn't required for the security of the guaranteed scheme.\n\n* Break out of the outer loop when `remaining_blocks == 0`\n\nThe addition at the end of the outer loop's body could trap if\n`remaining_blocks == 0`. We already did `break`, but solely out of the inner\nloop.\n\nIn practice, this required an absurd request _and_ malicious RPC response.\n\n* Make `FeeRate::calculate_fee_from_weight` infallible by returning a `u128`\n\nI don't love the `unwrap`s in `SignableTransaction`, but `validate` does ensure\ntheir validity AFAICT. `validate` does check the transaction's weight\n(indirectly) before calling this method to calculate the weight, fee.\n\nIn the future, having (internally) `UnvalidatedSignableTransaction` may be\nuseful. Specifically, we want to ensure `validate` (an associated method) is\nalways called before certain other associated methods are. The current\ntimelines are messy in that regard. Ideally, we also have fallible methods for\n`UnvalidatedSignableTransaction` and infallible ones for `SignableTransaction`\n(as now with these spot `unwrap`s, but without the proper clarity).\n\n* Move `MAX_ITERS` for decoy selection into the inner loop\n\n* Correct bound on if decoy selection would fail\n\nThis would terminate when the remaining candidates were less than the ring\nlength, when it should be if the remaining candidates were less than the\nnecessary amount of remaining selections.\n\nThe former bound isn't an issue, only a concern on fresh chains (such as in\ntesting), in which case this was just mildly incomplete.\n\n* Fix https://github.com/monero-oxide/monero-oxide/issues/168\n\nI also tidied this method a bit and added documentation about why certain\narithmetic operations won't trap.\n\n* Fix selecting decoys from the very first block in the distribution\n\n* Rust 1.9"
+            }
+          },
+          {
+            "sha": "cae84b7b16051ac8bf92ed151aad49b9e6f4fcae",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/cae84b7b16051ac8bf92ed151aad49b9e6f4fcae",
+            "commit": {
+              "message": "New `monero-rpc` candidate (#66)\n\n* Split `ProvidesTransactions` out of `Rpc`\n\nResolves https://github.com/monero-oxide/monero-oxide/issues/3.\n\nCandidate for the rewrite discussed in\nhttps://github.com/monero-oxide/monero-oxide/issues/34.\n\n* Split `ProvidesBlockchain` out of `Rpc`\n\nIntroduces APIs to get blocks in batches, resolving the originally stated issue\nof https://github.com/monero-oxide/monero-oxide/issues/34.\n\n* Move `generate_blocks` from `Rpc` to `MoneroDaemon`\n\n* Introduce `ProvidesBlockchainMeta`, `PublishTransaction`\n\n* Split out the fee API from `Rpc`\n\nFixes https://github.com/monero-oxide/monero-oxide/issues/65.\n\n* Move `get_o_indexes` to `ProvidesOutputs`\n\n* `ProvidesScannableBlocks` abstraction\n\nNot currently implemented as it practically requires `get_blocks.bin`, which we\ndon't support.\n\n* Trim `get_output_distribution_end_height` in favor of `ProvidesBlockchainMeta`\n\nShrinks `ProvidesBlockchainMeta` by removing `get_hardfork_version` and moving\n`get_block_hash` to `ProvidesBlockchain`.\n\n* Move `DecoyRpc::get_outs` to `ProvidesOutputs::get_ringct_outputs`\n\n* ProvidesDecoys\n\n* Remove `get_` prefix from RPC methods\n\n* Rework erros in `monero-rpc`\n\n* Remove untrusted input from error messages\n\nThis ensures they're safe to log.\n\n* Bound HTTP response sizes to prevent a malicious Monero node which actually replies with a several GB response\n\n* Correct rebase\n\nEffectively re-applies 75a5048bc6e8ff7012eeb8f208716e16979323ba and\nb8263ce4b04ad8cc018a30bcacabc24c7ab94246.\n\n* Fix `no-std` builds of `monero-rpc`\n\n* Attempt fix for prunable hashes not lining up\n\n* Clarify bounds in the `monero_daemon` module\n\n* Rename `monero-rpc` to `monero-interface`\n\nThis is no longer solely for _Remote_ Procedure Calls, and `monero-rpc` is\nalready a published crate.\n\n* Rename \"Source\" terminology to \"Interface\"\n\n* Move `interface/src/monero_daemon.rs` to `interface/daemon`\n\nIt has almost no relation to the rest of the library and we aren't benefited by\nits inclusion.\n\nRem"
+            }
+          },
+          {
+            "sha": "a647e007de126c5dcfab1774111027dbb5b1ae6a",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/a647e007de126c5dcfab1774111027dbb5b1ae6a",
+            "commit": {
+              "message": "Respect the maximum amount of transactions when reading blocks (#84)\n\n* Respect the maximum amount of transactions when reading blocks\n\n* Also add missing bound regarding inputs per transaction"
+            }
+          },
+          {
+            "sha": "b6d3e44c50ae2e932bcb95a2059410310a86ad2f",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/b6d3e44c50ae2e932bcb95a2059410310a86ad2f",
+            "commit": {
+              "message": "Rollup of miscealleanous commits (#155)\n\n* Fix acceptance of non-canonically-encoded partial blocks when decoding Base58\n\n* Fix potential overflow in the Base58 decoder\n\n* Update LICENSE files for 2026\n\n* Rust 1.92.0, nightly-2026-01-01, `cargo update`\n\n* `profile = \"abort\"`, `overflow-checks = true`\n\n* Reject identity/torsion points from scan/signing\n\nThis is part of https://github.com/monero-oxide/monero-oxide/issues/120. While\nit doesn't fix the incompleteness in CLSAG, it resolves some of the additional\nnotes I raised in a comment on the issue.\n\n* Update CI\n\nExpands the integration tests to also run on macOS, Windows.\n\nDocuments what versions were pinned to when pinning by hash.\n\nRemoves the `monthly-nightly-update` workflow as the GitHub secrets were never\nconfigured for it.\n\nVarious version bumps.\n\n* Fix the definition of `MergeMining`\n\nCloses https://github.com/monero-oxide/monero-oxide/issues/149.\n\n* Document `ExtraField::Nonce`'s usage of a `VarInt` length prefix\n\n* Write `Extra` in a sorted fashion\n\n`monero-wallet` constructed its `Extra` in a sorted fashion, making this\nunnecessary for `monero-wallet`. It's a safer design decision which better\npromotes external usability however.\n\nTo avoid a `clone`, or to require a mutable reference, the implementation works\non a `n`-pass algorithm, where `n` is the amount of types of fields within\n`Extra`.\n\n* Restrict `ExtraField::Padding`'s field to the class of valid values for it\n\n* Update lints\n\nEnables certain off-by-default lints within the Rust compiler itself.\n\nWe prior enabled a subset of pedantic lints. We now enable the entire pedantic\nlint group, making `clippy` much more annoying, before disabling the specific\nlints which aren't beneficial.\n\nThe style lint group is also enabled, as is a subset of restrictions.\n\nThe changes these effect are visible in the flood of changes to just about\nevery file in the repository. While this commit is annoying, I believe the\nupdated code to observably be of higher quality.\n"
+            }
+          },
+          {
+            "sha": "9f2cf5379ffe8b2d6b39286b9de8030c4fe9f8b5",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/9f2cf5379ffe8b2d6b39286b9de8030c4fe9f8b5",
+            "commit": {
+              "message": "Add sanity check on the inputs of a miner transaction to make `Block::number` infallible (#85)"
+            }
+          },
+          {
+            "sha": "fc4fa24fa276321ff330a9bac786aec4328753aa",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/fc4fa24fa276321ff330a9bac786aec4328753aa",
+            "commit": {
+              "message": "Updates to the Merkle tree (#104)\n\n* Update `merkle_root` to not perform any allocations\n\nPrior, the function would allocate for the new layer of the tree, causing\nmemory consumption to increase by up to 50% of the size of the input. This is\nunecessary, as demonstrated by this commit.\n\nIt'd also perform a bunch of small allocations (64 bytes) for every single\npairing, which is now replaced with 64-bytes on the stack.\n\nThis isn't performance critical code, so this should be minor, but it's good to\nhave done. I also increased the documentation. Hopefully, with FCMP++, we can\nenforce no transactions are less than 64 bytes so long as every miner\ntransaction had an extra of >20 bytes or so? (as CARROT will make each output\nlarger than 64 bytes)\n\nThis also updates the calculation of `low_pow_2` in a way which hanndles if\n`leaves.len()`'s MSB is set, superseding my commits in\nhttps://github.com/monero-oxide/monero-oxide/pull/94.\n\n* Add test for and document the properties of the preimage for the hash defined for block 202,612\n\n* Add disclaimer to `serialize_pow_hash` regarding block #202,612"
+            }
+          }
+        ]
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:pr contiguous_blocks\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 0,
+        "incomplete_results": false,
+        "items": []
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:issue contiguous_blocks\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 2,
+        "incomplete_results": false,
+        "items": [
+          {
+            "number": 101,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/101",
+            "title": "Fetch contiguous blocks in parallel",
+            "state": "open",
+            "body": "#66 implements a `contiguous_blocks` function premised on a batch request to the JSON-RPC 2.0 server within Monero. Unfortunately, Monero's JSON-RPC 2.0 server is incomplete and does not support batch requests (https://github.com/monero-project/monero/issues/10118), a feature/bug fix I do not expect someone to pick up anytime soon :/\n\nWe fall back to making individual requests in a serial fashion. Obviously, as is within an `async` environment, we can fire several requests at once and `await` then all together. This will presumably spawn multiple connections (one for each active request), and is not the preferable solution, yet it's likely the best solution we have at this time.\n\nThen, for `contiguous_scannable_blocks`, we use `get_blocks.bin` UNLESS that is broken (https://github.com/monero-project/monero/issues/10120). In that case, we fall back to `contiguous_blocks` + `/get_transactions`, currently making one call to `/get_transactions` per block. We should _at least_ similarly handle these `/get_transactions` calls in parallel, but it'd better to make a single request for the entire list across all blocks (letting our `pruned_transactions` manage the splitting of the requests as optimal)."
+          },
+          {
+            "number": 168,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/168",
+            "title": "`monero-daemon-rpc` does not fetch `contiguous_blocks` from batch-enabled JSON-RPC servers correctly",
+            "state": "closed",
+            "body": "@rootkid19 reported to our GitHub Security program how https://github.com/monero-oxide/monero-oxide/blob/a941dfff1a5333b6349d9a1ee5de49c158b0e3d2/monero-oxide/interface/daemon/src/blocks.rs#L93-L114 is incorrect, using `start <= end` instead of `number <= end`. This was ruled not a security issue, as this would be caught by the validation layer and _solely_ behave as an ephemeral liveness issue for servers _which do not exist at this time_. Monero's JSON-RPC server _does not support these requests_.\n\nWe should fix the immediate bug, which is a one-line change, but also we should shim our own JSON-RPC server which:\n \n- Takes batch requests\n- Decomposes the batch to a series of individual requests\n- Composes the responses into a single response, with a random order\n\nand run all of our tests against it in order to validate the `monero-daemon-rpc` code for such servers does actually work. It's currently untested as no such servers exist to test against at this time. It should be trivial to write such middleware however."
+          }
+        ]
+      }
+    },
+    "search.commits::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide contiguous_blocks\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 1,
+        "items": [
+          {
+            "sha": "cae84b7b16051ac8bf92ed151aad49b9e6f4fcae",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/cae84b7b16051ac8bf92ed151aad49b9e6f4fcae",
+            "commit": {
+              "message": "New `monero-rpc` candidate (#66)\n\n* Split `ProvidesTransactions` out of `Rpc`\n\nResolves https://github.com/monero-oxide/monero-oxide/issues/3.\n\nCandidate for the rewrite discussed in\nhttps://github.com/monero-oxide/monero-oxide/issues/34.\n\n* Split `ProvidesBlockchain` out of `Rpc`\n\nIntroduces APIs to get blocks in batches, resolving the originally stated issue\nof https://github.com/monero-oxide/monero-oxide/issues/34.\n\n* Move `generate_blocks` from `Rpc` to `MoneroDaemon`\n\n* Introduce `ProvidesBlockchainMeta`, `PublishTransaction`\n\n* Split out the fee API from `Rpc`\n\nFixes https://github.com/monero-oxide/monero-oxide/issues/65.\n\n* Move `get_o_indexes` to `ProvidesOutputs`\n\n* `ProvidesScannableBlocks` abstraction\n\nNot currently implemented as it practically requires `get_blocks.bin`, which we\ndon't support.\n\n* Trim `get_output_distribution_end_height` in favor of `ProvidesBlockchainMeta`\n\nShrinks `ProvidesBlockchainMeta` by removing `get_hardfork_version` and moving\n`get_block_hash` to `ProvidesBlockchain`.\n\n* Move `DecoyRpc::get_outs` to `ProvidesOutputs::get_ringct_outputs`\n\n* ProvidesDecoys\n\n* Remove `get_` prefix from RPC methods\n\n* Rework erros in `monero-rpc`\n\n* Remove untrusted input from error messages\n\nThis ensures they're safe to log.\n\n* Bound HTTP response sizes to prevent a malicious Monero node which actually replies with a several GB response\n\n* Correct rebase\n\nEffectively re-applies 75a5048bc6e8ff7012eeb8f208716e16979323ba and\nb8263ce4b04ad8cc018a30bcacabc24c7ab94246.\n\n* Fix `no-std` builds of `monero-rpc`\n\n* Attempt fix for prunable hashes not lining up\n\n* Clarify bounds in the `monero_daemon` module\n\n* Rename `monero-rpc` to `monero-interface`\n\nThis is no longer solely for _Remote_ Procedure Calls, and `monero-rpc` is\nalready a published crate.\n\n* Rename \"Source\" terminology to \"Interface\"\n\n* Move `interface/src/monero_daemon.rs` to `interface/daemon`\n\nIt has almost no relation to the rest of the library and we aren't benefited by\nits inclusion.\n\nRem"
+            }
+          }
+        ]
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:pr JSON-RPC\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 2,
+        "incomplete_results": false,
+        "items": [
+          {
+            "number": 165,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/165",
+            "title": "perf(wallet): optimize scanner hot path with ECDH caching and BIN path compatibility",
+            "state": "closed",
+            "body": "This PR improves wallet scanning performance ~40 minutes to ~4 minutes 20 seconds from height 3,519,450 to 3,596,738 on local LAN WiFi monero node.\r\n\r\nChanges\r\n\r\n**Scanner optimizations:**\r\n- Add ECDH cache per transaction to avoid redundant scalar multiplications\r\n- Split view-tag check from shared-key derivation for early rejection\r\n- Use streaming Keccak256 to avoid heap allocations\r\n- Use stack-based VarInt encoding\r\n\r\n**BIN path compatibility:**\r\n- Add `walletcore-lenient-prunable` and `walletcore-lenient-tx-verify` feature flags\r\n- When enabled, the binary RPC path accepts missing/zero prunable hashes instead of falling back to slow JSON RPC\r\n- Related: https://github.com/monero-project/monero/issues/10120\r\n\r\n### Usage\r\n\r\nEnable the lenient features in your Cargo.toml:\r\n\r\nmonero-interface = { ..., features = [\"walletcore-lenient-prunable\", \"walletcore-lenient-tx-verify\"] }\r\nmonero-daemon-rpc = { ..., features = [\"walletcore-lenient-prunable\"] }",
+            "pull_request": {
+              "merged_at": null
+            }
+          },
+          {
+            "number": 66,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/66",
+            "title": "New `monero-rpc` candidate",
+            "state": "closed",
+            "body": "Smashes the monolithic `monero-rpc::Rpc` trait into several.\r\n\r\nMoves the code expecting a Monero daemon into its own `monero-daemon-rpc`, which remains transport agnostic.\r\n\r\nCloses #3, #34, #41 (albeit with a distinct library), #62, #65, #74, #91, and makes progress on #81.\r\n\r\n---\r\n\r\nThis does add bounds to the HTTP requests. Unfortunately, any bounds potentially introduce incorrect behavior. Monero has no maximum block size, so limiting the size of blocks received over the RPC potentially means not supporting the Monero protocol. Additionally, we don't have estimates for how large responses are, even if we have estimates for how large the data we _want_ within the response is. This RPC allows disabling bounds accordingly for those who prefer to ensure correctness.\r\n\r\nThis code sets a base response size of 64 KB, then assumes JSON has an 8x overhead (due to the encoding, schema). Finally, all requests are limited by monerod's limit (100 MB). We also adopt some policy rules, including ones which won't go active until FCMP++, to establish some sane bounds where none were prior present.\r\n\r\n---\r\n\r\nThis PR DOES NOT introduce Cuprate's RPC types library (#43). It uses its own types entirely. Given how few they are for the API we want to provide, how we use different epee libraries, and #81, I believe this will be the best path forward overall, so we should also be able to close #43.\r\n\r\n---\r\n\r\nI replaced \"RPC\" with \"Interface\", as it may be a local DB (not a Remote Procedure Call). `Blockchain` may be better, as this is to connect to and view the Monero blockchain?",
+            "pull_request": {
+              "merged_at": "2026-01-07T14:48:58Z"
+            }
+          }
+        ]
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:issue JSON-RPC\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 4,
+        "incomplete_results": false,
+        "items": [
+          {
+            "number": 81,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/81",
+            "title": "`serde_json` within `monero-daemon-rpc`",
+            "state": "open",
+            "body": "`monero-rpc` used `serde_json` and a bespoke `epee` decoder for a single RPC which was only available in binary. With #66, `monero-rpc` has been reworked significantly into `monero-interface` (which should be applicable to anything and everything) and `monero-daemon-rpc` (which expects to talk with a Monero node over HTTP, using JSON and `epee` to do so). `monero-daemon-rpc` fleshed out the bespoke `epee` decoder, which was atrocious, into a properly compliant decoder which should be immediate to review and argue the safety of. The only caveat is that it doesn't actually decode anything, it solely returns the bytes representing a field for the caller to decode. This is generally immediate and avoids having to define an equivalent of `serde_json::Value` (runtime-typed dynamic value premised on `HashMap` and allocations) or a macro, though it does lead to ~260 lines of bespoke decoding functionality for the actual end results we want (on top of a <400 line decoder).\n\n#41 discusses replacing `monero-rpc`'s bespoke `epee` decoder, and I don't plan to hijack it here more now that this existing premise has been discussed. Instead, I want to turn the attention to `serde_json`.\n\nThe work dtolnay does for the Rust ecosystem is undeniable, and `serde` has been of incredible utility. Unfortunately, `serde` and `serde_json` are still rather large dependencies, which led to even dtolnay themselves writing [`miniserde`](https://github.com/dtolnay/miniserde):\n\n> The implementation is less code by a factor of 12 compared to serde + serde_derive + serde_json, and less code even than the json crate which provides no derive macro and cannot manipulate strongly typed data.\n\n> Without monomorphization, the derived impls compile lightning fast and occupy very little size in the executable.\n\n> In miniserde neither serialization nor deserialization involves recursion. You can safely process arbitrarily nested data without being exposed to stack overflows. Not even the Drop impl of our json"
+          },
+          {
+            "number": 101,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/101",
+            "title": "Fetch contiguous blocks in parallel",
+            "state": "open",
+            "body": "#66 implements a `contiguous_blocks` function premised on a batch request to the JSON-RPC 2.0 server within Monero. Unfortunately, Monero's JSON-RPC 2.0 server is incomplete and does not support batch requests (https://github.com/monero-project/monero/issues/10118), a feature/bug fix I do not expect someone to pick up anytime soon :/\n\nWe fall back to making individual requests in a serial fashion. Obviously, as is within an `async` environment, we can fire several requests at once and `await` then all together. This will presumably spawn multiple connections (one for each active request), and is not the preferable solution, yet it's likely the best solution we have at this time.\n\nThen, for `contiguous_scannable_blocks`, we use `get_blocks.bin` UNLESS that is broken (https://github.com/monero-project/monero/issues/10120). In that case, we fall back to `contiguous_blocks` + `/get_transactions`, currently making one call to `/get_transactions` per block. We should _at least_ similarly handle these `/get_transactions` calls in parallel, but it'd better to make a single request for the entire list across all blocks (letting our `pruned_transactions` manage the splitting of the requests as optimal)."
+          },
+          {
+            "number": 168,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/168",
+            "title": "`monero-daemon-rpc` does not fetch `contiguous_blocks` from batch-enabled JSON-RPC servers correctly",
+            "state": "closed",
+            "body": "@rootkid19 reported to our GitHub Security program how https://github.com/monero-oxide/monero-oxide/blob/a941dfff1a5333b6349d9a1ee5de49c158b0e3d2/monero-oxide/interface/daemon/src/blocks.rs#L93-L114 is incorrect, using `start <= end` instead of `number <= end`. This was ruled not a security issue, as this would be caught by the validation layer and _solely_ behave as an ephemeral liveness issue for servers _which do not exist at this time_. Monero's JSON-RPC server _does not support these requests_.\n\nWe should fix the immediate bug, which is a one-line change, but also we should shim our own JSON-RPC server which:\n \n- Takes batch requests\n- Decomposes the batch to a series of individual requests\n- Composes the responses into a single response, with a random order\n\nand run all of our tests against it in order to validate the `monero-daemon-rpc` code for such servers does actually work. It's currently untested as no such servers exist to test against at this time. It should be trivial to write such middleware however."
+          },
+          {
+            "number": 150,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/150",
+            "title": "RPC rewrite accepts JSON-encoded arguments as a `String`",
+            "state": "closed",
+            "body": "#81 had the midstep of removing the JSON library from the API, making the choice of JSON library solely an implementation detail. This had the side-effect of requiring JSON arguments be UTF-8, when under [RFC 8259](https://datatracker.ietf.org/doc/html/rfc8259), JSON is not required to be UTF-8.\n\nBeyond the technicality here, Monero is special as having a non-JSON JSON which includes arbitrary binary data inline. While these methods are proposed for deprecation/removal (https://github.com/monero-project/monero/issues/9422), they still require consideration.\n\nI believe the consideration resolves as \"stupid methods are stupid, JSON should be UTF-8, won't fix\" and plan to close this immediately after opening. I just wanted this tracked/documented."
+          }
+        ]
+      }
+    },
+    "search.commits::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide JSON-RPC\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 1,
+        "items": [
+          {
+            "sha": "cae84b7b16051ac8bf92ed151aad49b9e6f4fcae",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/cae84b7b16051ac8bf92ed151aad49b9e6f4fcae",
+            "commit": {
+              "message": "New `monero-rpc` candidate (#66)\n\n* Split `ProvidesTransactions` out of `Rpc`\n\nResolves https://github.com/monero-oxide/monero-oxide/issues/3.\n\nCandidate for the rewrite discussed in\nhttps://github.com/monero-oxide/monero-oxide/issues/34.\n\n* Split `ProvidesBlockchain` out of `Rpc`\n\nIntroduces APIs to get blocks in batches, resolving the originally stated issue\nof https://github.com/monero-oxide/monero-oxide/issues/34.\n\n* Move `generate_blocks` from `Rpc` to `MoneroDaemon`\n\n* Introduce `ProvidesBlockchainMeta`, `PublishTransaction`\n\n* Split out the fee API from `Rpc`\n\nFixes https://github.com/monero-oxide/monero-oxide/issues/65.\n\n* Move `get_o_indexes` to `ProvidesOutputs`\n\n* `ProvidesScannableBlocks` abstraction\n\nNot currently implemented as it practically requires `get_blocks.bin`, which we\ndon't support.\n\n* Trim `get_output_distribution_end_height` in favor of `ProvidesBlockchainMeta`\n\nShrinks `ProvidesBlockchainMeta` by removing `get_hardfork_version` and moving\n`get_block_hash` to `ProvidesBlockchain`.\n\n* Move `DecoyRpc::get_outs` to `ProvidesOutputs::get_ringct_outputs`\n\n* ProvidesDecoys\n\n* Remove `get_` prefix from RPC methods\n\n* Rework erros in `monero-rpc`\n\n* Remove untrusted input from error messages\n\nThis ensures they're safe to log.\n\n* Bound HTTP response sizes to prevent a malicious Monero node which actually replies with a several GB response\n\n* Correct rebase\n\nEffectively re-applies 75a5048bc6e8ff7012eeb8f208716e16979323ba and\nb8263ce4b04ad8cc018a30bcacabc24c7ab94246.\n\n* Fix `no-std` builds of `monero-rpc`\n\n* Attempt fix for prunable hashes not lining up\n\n* Clarify bounds in the `monero_daemon` module\n\n* Rename `monero-rpc` to `monero-interface`\n\nThis is no longer solely for _Remote_ Procedure Calls, and `monero-rpc` is\nalready a published crate.\n\n* Rename \"Source\" terminology to \"Interface\"\n\n* Move `interface/src/monero_daemon.rs` to `interface/daemon`\n\nIt has almost no relation to the rest of the library and we aren't benefited by\nits inclusion.\n\nRem"
+            }
+          }
+        ]
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:pr number\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 3,
+        "incomplete_results": false,
+        "items": [
+          {
+            "number": 85,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/85",
+            "title": "Ensure `miner_transaction` includes the block's number",
+            "state": "closed",
+            "body": "I don't love this oddity of having `miner_transaction` alone be private, yet we don't to check every field of the block at this level, and I quite dislike `Block::number` only being infallible for invalid blocks. This also should minimally affect consumers, while `Block::number` not being infallible should prevent a decent amount of `unwrap`s in consumers.\r\n\r\nBuilds on #84 as they'd immediately conflict otherwise.\r\n\r\nDoes modify `monero-rpc` which #66 replaces, so one will conflict with the other, but should be trivial to fix. The new RPC code already checked all yielded `Block`s had a declared number as part of its sanity checks.",
+            "pull_request": {
+              "merged_at": "2025-09-24T12:52:18Z"
+            }
+          },
+          {
+            "number": 66,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/66",
+            "title": "New `monero-rpc` candidate",
+            "state": "closed",
+            "body": "Smashes the monolithic `monero-rpc::Rpc` trait into several.\r\n\r\nMoves the code expecting a Monero daemon into its own `monero-daemon-rpc`, which remains transport agnostic.\r\n\r\nCloses #3, #34, #41 (albeit with a distinct library), #62, #65, #74, #91, and makes progress on #81.\r\n\r\n---\r\n\r\nThis does add bounds to the HTTP requests. Unfortunately, any bounds potentially introduce incorrect behavior. Monero has no maximum block size, so limiting the size of blocks received over the RPC potentially means not supporting the Monero protocol. Additionally, we don't have estimates for how large responses are, even if we have estimates for how large the data we _want_ within the response is. This RPC allows disabling bounds accordingly for those who prefer to ensure correctness.\r\n\r\nThis code sets a base response size of 64 KB, then assumes JSON has an 8x overhead (due to the encoding, schema). Finally, all requests are limited by monerod's limit (100 MB). We also adopt some policy rules, including ones which won't go active until FCMP++, to establish some sane bounds where none were prior present.\r\n\r\n---\r\n\r\nThis PR DOES NOT introduce Cuprate's RPC types library (#43). It uses its own types entirely. Given how few they are for the API we want to provide, how we use different epee libraries, and #81, I believe this will be the best path forward overall, so we should also be able to close #43.\r\n\r\n---\r\n\r\nI replaced \"RPC\" with \"Interface\", as it may be a local DB (not a Remote Procedure Call). `Blockchain` may be better, as this is to connect to and view the Monero blockchain?",
+            "pull_request": {
+              "merged_at": "2026-01-07T14:48:58Z"
+            }
+          },
+          {
+            "number": 97,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/97",
+            "title": "Introduce `UpperBound`, `LowerBound` to represent bounds",
+            "state": "closed",
+            "body": "The docstrings on the structs are quite extensive, and we want them applied to all instantiations of a bound. Copying these docstrings everywhere would be annoying. This seemed to be the best solution.",
+            "pull_request": {
+              "merged_at": "2025-10-06T21:29:09Z"
+            }
+          }
+        ]
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:issue number\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 7,
+        "incomplete_results": false,
+        "items": [
+          {
+            "number": 52,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/52",
+            "title": "Clarify `assert!` vs `debug_assert!`",
+            "state": "open",
+            "body": "In the current `monero-oxide` libraries, we currently only `assert!` in the following cases:\n\n- `keccak256` outputs `0`. This ensures we don't accept a proof Monero would reject. While we could return an error, so we don't panic upon proofs Monero would reject, this has a negligible probability.\n- If the Bulletproofs+ code is (internally) asked for a number of generators which isn't a power of two.\n- If the Bulletproofs+ code is (internally) asked to multiply two vectors of different lengths.\n- If the Merkle tree code fails to successfully handle the right-most edge until its remaining elements are of length a power of two.\n\nAll of these can be clearly justified as unreachable. However, we have plenty more `debug_assert!` which can also be so justified. Why not promote them to `assert!`, a question raised by @Boog900, who cited [Rust's official guidance](https://doc.rust-lang.org/std/macro.debug_assert.html#uses).\n\nWe should probably adopt Rust's policy and issue a PR going through, and promoting, `debug_assert!` with sufficient documentation they are justified and unreachable."
+          },
+          {
+            "number": 81,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/81",
+            "title": "`serde_json` within `monero-daemon-rpc`",
+            "state": "open",
+            "body": "`monero-rpc` used `serde_json` and a bespoke `epee` decoder for a single RPC which was only available in binary. With #66, `monero-rpc` has been reworked significantly into `monero-interface` (which should be applicable to anything and everything) and `monero-daemon-rpc` (which expects to talk with a Monero node over HTTP, using JSON and `epee` to do so). `monero-daemon-rpc` fleshed out the bespoke `epee` decoder, which was atrocious, into a properly compliant decoder which should be immediate to review and argue the safety of. The only caveat is that it doesn't actually decode anything, it solely returns the bytes representing a field for the caller to decode. This is generally immediate and avoids having to define an equivalent of `serde_json::Value` (runtime-typed dynamic value premised on `HashMap` and allocations) or a macro, though it does lead to ~260 lines of bespoke decoding functionality for the actual end results we want (on top of a <400 line decoder).\n\n#41 discusses replacing `monero-rpc`'s bespoke `epee` decoder, and I don't plan to hijack it here more now that this existing premise has been discussed. Instead, I want to turn the attention to `serde_json`.\n\nThe work dtolnay does for the Rust ecosystem is undeniable, and `serde` has been of incredible utility. Unfortunately, `serde` and `serde_json` are still rather large dependencies, which led to even dtolnay themselves writing [`miniserde`](https://github.com/dtolnay/miniserde):\n\n> The implementation is less code by a factor of 12 compared to serde + serde_derive + serde_json, and less code even than the json crate which provides no derive macro and cannot manipulate strongly typed data.\n\n> Without monomorphization, the derived impls compile lightning fast and occupy very little size in the executable.\n\n> In miniserde neither serialization nor deserialization involves recursion. You can safely process arbitrarily nested data without being exposed to stack overflows. Not even the Drop impl of our json"
+          },
+          {
+            "number": 171,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/171",
+            "title": "Helios and Selene Points",
+            "state": "open",
+            "body": "Hello Kayaba!\n\nI have just started my quest to understand the magic world of FCMP++ ! First, I started looking at the Helios and Selene curves and at your implementation from the monero-oxide repo and I executed the code below:\n\n```\n  let A_S = SelenePoint::random(&mut OsRng);\n  println!(\"Random Selene: \");\n  println!(\"{:?}\", A_S);\n\n  let xb = FieldElement::from_u256(&U256::from_u8(1));\n  let yb = FieldElement::from_u256(&U256::from_be_hex(\"611dffc62fe02c759e5ac10f40e009b8e3b147387068aaf810dbdf2d817c67ba\"));\n  let HB = HeliosPoint::from_xy(xb,yb).unwrap();\n  println!(\"Base point Helios: \");\n  println!(\"{:?}\", HB);\n\n  println!(\"Base point Helios to xy: \");\n  println!(\"{:?}\", HeliosPoint::to_xy(HB));\n```\nWith the following results:\n\n```\nRandom Selene: \nSelenePoint { x: HelioseleneField(Uint(0x4D343E8268D9CFAC48962AA201E55E3AE9ABE777F66C2885D1F5E8EF16609DBA)), y: HelioseleneField(Uint(0x2B469A6C3C4410E63823E5E75BF3EA497B6B9C95E2E7D95FD6566A44228ADB9B)), z: HelioseleneField(Uint(0x0000000000000000000000000000000000000000000000000000000000000001)) }\nBase point Helios: \nHeliosPoint { x: FieldElement(Residue { montgomery_form: Uint(0x0000000000000000000000000000000000000000000000000000000000000026), phantom: PhantomData<dalek_ff_group::field::FieldModulus> }), y: FieldElement(Residue { montgomery_form: Uint(0x6A73F76B1B4699758178A843A1417171CC509260AF8960D280A320C1387767B0), phantom: PhantomData<dalek_ff_group::field::FieldModulus> }), z: FieldElement(Residue { montgomery_form: Uint(0x0000000000000000000000000000000000000000000000000000000000000026), phantom: PhantomData<dalek_ff_group::field::FieldModulus> }) }\nBase point Helios to xy: \nSome((FieldElement(Residue { montgomery_form: Uint(0x0000000000000000000000000000000000000000000000000000000000000026), phantom: PhantomData<dalek_ff_group::field::FieldModulus> }), FieldElement(Residue { montgomery_form: Uint(0x6A73F76B1B4699758178A843A1417171CC509260AF8960D280A320C1387767B0), phantom: PhantomData<dalek_ff_group::field::F"
+          },
+          {
+            "number": 168,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/168",
+            "title": "`monero-daemon-rpc` does not fetch `contiguous_blocks` from batch-enabled JSON-RPC servers correctly",
+            "state": "closed",
+            "body": "@rootkid19 reported to our GitHub Security program how https://github.com/monero-oxide/monero-oxide/blob/a941dfff1a5333b6349d9a1ee5de49c158b0e3d2/monero-oxide/interface/daemon/src/blocks.rs#L93-L114 is incorrect, using `start <= end` instead of `number <= end`. This was ruled not a security issue, as this would be caught by the validation layer and _solely_ behave as an ephemeral liveness issue for servers _which do not exist at this time_. Monero's JSON-RPC server _does not support these requests_.\n\nWe should fix the immediate bug, which is a one-line change, but also we should shim our own JSON-RPC server which:\n \n- Takes batch requests\n- Decomposes the batch to a series of individual requests\n- Composes the responses into a single response, with a random order\n\nand run all of our tests against it in order to validate the `monero-daemon-rpc` code for such servers does actually work. It's currently untested as no such servers exist to test against at this time. It should be trivial to write such middleware however."
+          },
+          {
+            "number": 144,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/144",
+            "title": "Timelock does not enforce `Timelock::Block` is below the limit",
+            "state": "closed",
+            "body": "Timelock is a public enum which allows setting `Timelock::Block` > `500,000,000`. When a block number this large is written and read again it will be interpreted as a `Timelock::Time`."
+          },
+          {
+            "number": 99,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/99",
+            "title": "`9` is used for the maximum length of a `u64` VarInt in size hints, recently added bounds declarations",
+            "state": "closed",
+            "body": "It isn't 9, it's 10, as 9 bytes (in a VarInt) each with 7 bits available only offer 63 bits. This means a 64-bit number requires more space (a 10th byte)."
+          },
+          {
+            "number": 38,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/38",
+            "title": "simple-request-rpc rejects trailing slash in url",
+            "state": "closed",
+            "body": "The `url` crate (widely used) by default appends a trailing slash when calling `.to_string()` on a `Url`. The provided `simple-request-rpc` (implements the `Rpc` trait) fails all its requests when constructing the `SimpleRequestRpc` with a url with a trailing slash.\n\nThis behaviour should either be documented or the client should trim trailing slashes in the constructor."
+          }
+        ]
+      }
+    },
+    "search.commits::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide number\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 2,
+        "items": [
+          {
+            "sha": "9f2cf5379ffe8b2d6b39286b9de8030c4fe9f8b5",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/9f2cf5379ffe8b2d6b39286b9de8030c4fe9f8b5",
+            "commit": {
+              "message": "Add sanity check on the inputs of a miner transaction to make `Block::number` infallible (#85)"
+            }
+          },
+          {
+            "sha": "cae84b7b16051ac8bf92ed151aad49b9e6f4fcae",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/cae84b7b16051ac8bf92ed151aad49b9e6f4fcae",
+            "commit": {
+              "message": "New `monero-rpc` candidate (#66)\n\n* Split `ProvidesTransactions` out of `Rpc`\n\nResolves https://github.com/monero-oxide/monero-oxide/issues/3.\n\nCandidate for the rewrite discussed in\nhttps://github.com/monero-oxide/monero-oxide/issues/34.\n\n* Split `ProvidesBlockchain` out of `Rpc`\n\nIntroduces APIs to get blocks in batches, resolving the originally stated issue\nof https://github.com/monero-oxide/monero-oxide/issues/34.\n\n* Move `generate_blocks` from `Rpc` to `MoneroDaemon`\n\n* Introduce `ProvidesBlockchainMeta`, `PublishTransaction`\n\n* Split out the fee API from `Rpc`\n\nFixes https://github.com/monero-oxide/monero-oxide/issues/65.\n\n* Move `get_o_indexes` to `ProvidesOutputs`\n\n* `ProvidesScannableBlocks` abstraction\n\nNot currently implemented as it practically requires `get_blocks.bin`, which we\ndon't support.\n\n* Trim `get_output_distribution_end_height` in favor of `ProvidesBlockchainMeta`\n\nShrinks `ProvidesBlockchainMeta` by removing `get_hardfork_version` and moving\n`get_block_hash` to `ProvidesBlockchain`.\n\n* Move `DecoyRpc::get_outs` to `ProvidesOutputs::get_ringct_outputs`\n\n* ProvidesDecoys\n\n* Remove `get_` prefix from RPC methods\n\n* Rework erros in `monero-rpc`\n\n* Remove untrusted input from error messages\n\nThis ensures they're safe to log.\n\n* Bound HTTP response sizes to prevent a malicious Monero node which actually replies with a several GB response\n\n* Correct rebase\n\nEffectively re-applies 75a5048bc6e8ff7012eeb8f208716e16979323ba and\nb8263ce4b04ad8cc018a30bcacabc24c7ab94246.\n\n* Fix `no-std` builds of `monero-rpc`\n\n* Attempt fix for prunable hashes not lining up\n\n* Clarify bounds in the `monero_daemon` module\n\n* Rename `monero-rpc` to `monero-interface`\n\nThis is no longer solely for _Remote_ Procedure Calls, and `monero-rpc` is\nalready a published crate.\n\n* Rename \"Source\" terminology to \"Interface\"\n\n* Move `interface/src/monero_daemon.rs` to `interface/daemon`\n\nIt has almost no relation to the rest of the library and we aren't benefited by\nits inclusion.\n\nRem"
+            }
+          }
+        ]
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:pr batch\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 3,
+        "incomplete_results": false,
+        "items": [
+          {
+            "number": 139,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/139",
+            "title": "Introduce a `const fn` hash-to-point",
+            "state": "open",
+            "body": "Removes the `monero-bulletproofs-generators` crate and `monero-bulletproofs` `build.rs`. This is solely intended as an experiment and unfortunately cannot be merged without significant algorithmic improvements to it itself or Rust's `const fn` evaluation.\r\n\r\nRemoval of `batch_sqrt` for the addition chain\r\n(https://github.com/monero-oxide/monero-oxide/issues/131) would have similar computational requirements with a fraction of the memory, and may be worthwhile.\r\n\r\n#128 related.",
+            "pull_request": {
+              "merged_at": null
+            }
+          },
+          {
+            "number": 66,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/66",
+            "title": "New `monero-rpc` candidate",
+            "state": "closed",
+            "body": "Smashes the monolithic `monero-rpc::Rpc` trait into several.\r\n\r\nMoves the code expecting a Monero daemon into its own `monero-daemon-rpc`, which remains transport agnostic.\r\n\r\nCloses #3, #34, #41 (albeit with a distinct library), #62, #65, #74, #91, and makes progress on #81.\r\n\r\n---\r\n\r\nThis does add bounds to the HTTP requests. Unfortunately, any bounds potentially introduce incorrect behavior. Monero has no maximum block size, so limiting the size of blocks received over the RPC potentially means not supporting the Monero protocol. Additionally, we don't have estimates for how large responses are, even if we have estimates for how large the data we _want_ within the response is. This RPC allows disabling bounds accordingly for those who prefer to ensure correctness.\r\n\r\nThis code sets a base response size of 64 KB, then assumes JSON has an 8x overhead (due to the encoding, schema). Finally, all requests are limited by monerod's limit (100 MB). We also adopt some policy rules, including ones which won't go active until FCMP++, to establish some sane bounds where none were prior present.\r\n\r\n---\r\n\r\nThis PR DOES NOT introduce Cuprate's RPC types library (#43). It uses its own types entirely. Given how few they are for the API we want to provide, how we use different epee libraries, and #81, I believe this will be the best path forward overall, so we should also be able to close #43.\r\n\r\n---\r\n\r\nI replaced \"RPC\" with \"Interface\", as it may be a local DB (not a Remote Procedure Call). `Blockchain` may be better, as this is to connect to and view the Monero blockchain?",
+            "pull_request": {
+              "merged_at": "2026-01-07T14:48:58Z"
+            }
+          },
+          {
+            "number": 140,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/140",
+            "title": "Miscellaneous updates and bug fixes",
+            "state": "closed",
+            "body": "It's probably best to review each commit individually.",
+            "pull_request": {
+              "merged_at": "2025-11-24T22:16:03Z"
+            }
+          }
+        ]
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:issue batch\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 9,
+        "incomplete_results": false,
+        "items": [
+          {
+            "number": 130,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/130",
+            "title": "Implement batched scanning for outputs",
+            "state": "open",
+            "body": "Calculating the hash of the ECDH requires compressing the point, which requires calculating an inverse. We can use a batch point compression to amortize the cost of the inner inverses to near zero."
+          },
+          {
+            "number": 128,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/128",
+            "title": "Support a batched hash-to-point",
+            "state": "open",
+            "body": "https://github.com/kayabaNerve/monero-oxide/blob/const-hash-to-point/monero-oxide/ed25519/src/hash_to_point demonstrates a `const fn` (irrelevant here for now, it was an experiment didn't pan out) hash-to-point as one hash, a few square roots, and four inversions.\n\nThe inversions can be batched, which at scale, likely saves roughly 50% of the total cost.\n\nThis would notably speed up ring signature verification and somewhat speed up syncing."
+          },
+          {
+            "number": 132,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/132",
+            "title": "Batch inverses across FCMPs, not just within an FCMP",
+            "state": "open",
+            "body": "The same would also also accelerate the BPs used as range proofs."
+          },
+          {
+            "number": 101,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/101",
+            "title": "Fetch contiguous blocks in parallel",
+            "state": "open",
+            "body": "#66 implements a `contiguous_blocks` function premised on a batch request to the JSON-RPC 2.0 server within Monero. Unfortunately, Monero's JSON-RPC 2.0 server is incomplete and does not support batch requests (https://github.com/monero-project/monero/issues/10118), a feature/bug fix I do not expect someone to pick up anytime soon :/\n\nWe fall back to making individual requests in a serial fashion. Obviously, as is within an `async` environment, we can fire several requests at once and `await` then all together. This will presumably spawn multiple connections (one for each active request), and is not the preferable solution, yet it's likely the best solution we have at this time.\n\nThen, for `contiguous_scannable_blocks`, we use `get_blocks.bin` UNLESS that is broken (https://github.com/monero-project/monero/issues/10120). In that case, we fall back to `contiguous_blocks` + `/get_transactions`, currently making one call to `/get_transactions` per block. We should _at least_ similarly handle these `/get_transactions` calls in parallel, but it'd better to make a single request for the entire list across all blocks (letting our `pruned_transactions` manage the splitting of the requests as optimal)."
+          },
+          {
+            "number": 168,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/168",
+            "title": "`monero-daemon-rpc` does not fetch `contiguous_blocks` from batch-enabled JSON-RPC servers correctly",
+            "state": "closed",
+            "body": "@rootkid19 reported to our GitHub Security program how https://github.com/monero-oxide/monero-oxide/blob/a941dfff1a5333b6349d9a1ee5de49c158b0e3d2/monero-oxide/interface/daemon/src/blocks.rs#L93-L114 is incorrect, using `start <= end` instead of `number <= end`. This was ruled not a security issue, as this would be caught by the validation layer and _solely_ behave as an ephemeral liveness issue for servers _which do not exist at this time_. Monero's JSON-RPC server _does not support these requests_.\n\nWe should fix the immediate bug, which is a one-line change, but also we should shim our own JSON-RPC server which:\n \n- Takes batch requests\n- Decomposes the batch to a series of individual requests\n- Composes the responses into a single response, with a random order\n\nand run all of our tests against it in order to validate the `monero-daemon-rpc` code for such servers does actually work. It's currently untested as no such servers exist to test against at this time. It should be trivial to write such middleware however."
+          },
+          {
+            "number": 171,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/171",
+            "title": "Helios and Selene Points",
+            "state": "open",
+            "body": "Hello Kayaba!\n\nI have just started my quest to understand the magic world of FCMP++ ! First, I started looking at the Helios and Selene curves and at your implementation from the monero-oxide repo and I executed the code below:\n\n```\n  let A_S = SelenePoint::random(&mut OsRng);\n  println!(\"Random Selene: \");\n  println!(\"{:?}\", A_S);\n\n  let xb = FieldElement::from_u256(&U256::from_u8(1));\n  let yb = FieldElement::from_u256(&U256::from_be_hex(\"611dffc62fe02c759e5ac10f40e009b8e3b147387068aaf810dbdf2d817c67ba\"));\n  let HB = HeliosPoint::from_xy(xb,yb).unwrap();\n  println!(\"Base point Helios: \");\n  println!(\"{:?}\", HB);\n\n  println!(\"Base point Helios to xy: \");\n  println!(\"{:?}\", HeliosPoint::to_xy(HB));\n```\nWith the following results:\n\n```\nRandom Selene: \nSelenePoint { x: HelioseleneField(Uint(0x4D343E8268D9CFAC48962AA201E55E3AE9ABE777F66C2885D1F5E8EF16609DBA)), y: HelioseleneField(Uint(0x2B469A6C3C4410E63823E5E75BF3EA497B6B9C95E2E7D95FD6566A44228ADB9B)), z: HelioseleneField(Uint(0x0000000000000000000000000000000000000000000000000000000000000001)) }\nBase point Helios: \nHeliosPoint { x: FieldElement(Residue { montgomery_form: Uint(0x0000000000000000000000000000000000000000000000000000000000000026), phantom: PhantomData<dalek_ff_group::field::FieldModulus> }), y: FieldElement(Residue { montgomery_form: Uint(0x6A73F76B1B4699758178A843A1417171CC509260AF8960D280A320C1387767B0), phantom: PhantomData<dalek_ff_group::field::FieldModulus> }), z: FieldElement(Residue { montgomery_form: Uint(0x0000000000000000000000000000000000000000000000000000000000000026), phantom: PhantomData<dalek_ff_group::field::FieldModulus> }) }\nBase point Helios to xy: \nSome((FieldElement(Residue { montgomery_form: Uint(0x0000000000000000000000000000000000000000000000000000000000000026), phantom: PhantomData<dalek_ff_group::field::FieldModulus> }), FieldElement(Residue { montgomery_form: Uint(0x6A73F76B1B4699758178A843A1417171CC509260AF8960D280A320C1387767B0), phantom: PhantomData<dalek_ff_group::field::F"
+          },
+          {
+            "number": 71,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/71",
+            "title": "Offer a synchronous alternative to `monero-rpc`",
+            "state": "open",
+            "body": "This has primarily been requested by @spirobel. Personally, I'm against it as even with a local database, asynchronous behavior still makes sense as it's still an IO operation. There also are no-std async runtime, and push comes to shove, a blocking async call can be used if the code is known to be synchronous.\n\nIf we can offer it immediately via the usage of something like https://crates.io/crates/trait-variant, or via a `hazmat` feature, I'm not fundamentally opposed to it though."
+          },
+          {
+            "number": 34,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/34",
+            "title": "Support for batch RPC requests",
+            "state": "closed",
+            "body": "The `rpc` and `simple-request-rpc` should expose methods to batch download a set of blocks and or transactions.\n\nAnalogous to `get_scannable_block` there should be a method `get_scannable_blocks`. The batch methods need to use `/get_blocks_by_height.bin` and `/get_blocks.bin` under the hood."
+          },
+          {
+            "number": 131,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/131",
+            "title": "Implement batched point deserialization",
+            "state": "closed",
+            "body": "https://github.com/kayabaNerve/monero-oxide/blob/007eb4050ad5deae4085f21b6220e74f7c9ba4cf/monero-oxide/ed25519/src/hash_to_point/mod.rs#L55-L98 implements a batch point deserialization for Ed25519, replacing the standard multiplications needed for a exponentation with a multiplicative inverse (leaving the squares untouched).\n\nThis could likely notably speed up scanning, ring decompressing, Bulletproofs deserialization. For FCMPs, if a similar technique is applied to Helios/Selene, this would save 20%."
+          }
+        ]
+      }
+    },
+    "search.commits::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide batch\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 1,
+        "items": [
+          {
+            "sha": "cae84b7b16051ac8bf92ed151aad49b9e6f4fcae",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/cae84b7b16051ac8bf92ed151aad49b9e6f4fcae",
+            "commit": {
+              "message": "New `monero-rpc` candidate (#66)\n\n* Split `ProvidesTransactions` out of `Rpc`\n\nResolves https://github.com/monero-oxide/monero-oxide/issues/3.\n\nCandidate for the rewrite discussed in\nhttps://github.com/monero-oxide/monero-oxide/issues/34.\n\n* Split `ProvidesBlockchain` out of `Rpc`\n\nIntroduces APIs to get blocks in batches, resolving the originally stated issue\nof https://github.com/monero-oxide/monero-oxide/issues/34.\n\n* Move `generate_blocks` from `Rpc` to `MoneroDaemon`\n\n* Introduce `ProvidesBlockchainMeta`, `PublishTransaction`\n\n* Split out the fee API from `Rpc`\n\nFixes https://github.com/monero-oxide/monero-oxide/issues/65.\n\n* Move `get_o_indexes` to `ProvidesOutputs`\n\n* `ProvidesScannableBlocks` abstraction\n\nNot currently implemented as it practically requires `get_blocks.bin`, which we\ndon't support.\n\n* Trim `get_output_distribution_end_height` in favor of `ProvidesBlockchainMeta`\n\nShrinks `ProvidesBlockchainMeta` by removing `get_hardfork_version` and moving\n`get_block_hash` to `ProvidesBlockchain`.\n\n* Move `DecoyRpc::get_outs` to `ProvidesOutputs::get_ringct_outputs`\n\n* ProvidesDecoys\n\n* Remove `get_` prefix from RPC methods\n\n* Rework erros in `monero-rpc`\n\n* Remove untrusted input from error messages\n\nThis ensures they're safe to log.\n\n* Bound HTTP response sizes to prevent a malicious Monero node which actually replies with a several GB response\n\n* Correct rebase\n\nEffectively re-applies 75a5048bc6e8ff7012eeb8f208716e16979323ba and\nb8263ce4b04ad8cc018a30bcacabc24c7ab94246.\n\n* Fix `no-std` builds of `monero-rpc`\n\n* Attempt fix for prunable hashes not lining up\n\n* Clarify bounds in the `monero_daemon` module\n\n* Rename `monero-rpc` to `monero-interface`\n\nThis is no longer solely for _Remote_ Procedure Calls, and `monero-rpc` is\nalready a published crate.\n\n* Rename \"Source\" terminology to \"Interface\"\n\n* Move `interface/src/monero_daemon.rs` to `interface/daemon`\n\nIt has almost no relation to the rest of the library and we aren't benefited by\nits inclusion.\n\nRem"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

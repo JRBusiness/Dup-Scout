@@ -1,0 +1,446 @@
+{
+  "calls": {
+    "repos.getContent::{\"owner\":\"monero-oxide\",\"path\":\"audits\",\"repo\":\"monero-oxide\"}": {
+      "ok": true,
+      "data": [
+        {
+          "name": "Cypher Stack May 2025",
+          "path": "audits/Cypher Stack May 2025",
+          "sha": "089a389185c8b52c0c7d6600dba499785a51451c",
+          "size": 0,
+          "url": "https://api.github.com/repos/monero-oxide/monero-oxide/contents/audits/Cypher%20Stack%20May%202025?ref=main",
+          "html_url": "https://github.com/monero-oxide/monero-oxide/tree/main/audits/Cypher%20Stack%20May%202025",
+          "git_url": "https://api.github.com/repos/monero-oxide/monero-oxide/git/trees/089a389185c8b52c0c7d6600dba499785a51451c",
+          "download_url": null,
+          "type": "dir",
+          "_links": {
+            "self": "https://api.github.com/repos/monero-oxide/monero-oxide/contents/audits/Cypher%20Stack%20May%202025?ref=main",
+            "git": "https://api.github.com/repos/monero-oxide/monero-oxide/git/trees/089a389185c8b52c0c7d6600dba499785a51451c",
+            "html": "https://github.com/monero-oxide/monero-oxide/tree/main/audits/Cypher%20Stack%20May%202025"
+          }
+        },
+        {
+          "name": "FROSTLASS",
+          "path": "audits/FROSTLASS",
+          "sha": "6948ee20ad2381f644c87dfbe95005fa97017d6d",
+          "size": 0,
+          "url": "https://api.github.com/repos/monero-oxide/monero-oxide/contents/audits/FROSTLASS?ref=main",
+          "html_url": "https://github.com/monero-oxide/monero-oxide/tree/main/audits/FROSTLASS",
+          "git_url": "https://api.github.com/repos/monero-oxide/monero-oxide/git/trees/6948ee20ad2381f644c87dfbe95005fa97017d6d",
+          "download_url": null,
+          "type": "dir",
+          "_links": {
+            "self": "https://api.github.com/repos/monero-oxide/monero-oxide/contents/audits/FROSTLASS?ref=main",
+            "git": "https://api.github.com/repos/monero-oxide/monero-oxide/git/trees/6948ee20ad2381f644c87dfbe95005fa97017d6d",
+            "html": "https://github.com/monero-oxide/monero-oxide/tree/main/audits/FROSTLASS"
+          }
+        }
+      ]
+    },
+    "repos.listReleases::{\"owner\":\"monero-oxide\",\"per_page\":100,\"repo\":\"monero-oxide\"}": {
+      "ok": true,
+      "data": []
+    },
+    "repos.getContent::{\"owner\":\"monero-oxide\",\"path\":\"audit\",\"repo\":\"monero-oxide\"}": {
+      "ok": false,
+      "status": 404,
+      "message": "Not Found - https://docs.github.com/rest/repos/contents#get-repository-content"
+    },
+    "repos.getContent::{\"owner\":\"monero-oxide\",\"path\":\"docs/audits\",\"repo\":\"monero-oxide\"}": {
+      "ok": false,
+      "status": 404,
+      "message": "Not Found - https://docs.github.com/rest/repos/contents#get-repository-content"
+    },
+    "repos.getContent::{\"owner\":\"monero-oxide\",\"path\":\"security\",\"repo\":\"monero-oxide\"}": {
+      "ok": false,
+      "status": 404,
+      "message": "Not Found - https://docs.github.com/rest/repos/contents#get-repository-content"
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:pr monero-oxide/interface/daemon/simple-request/src/lib.rs OR lib OR SimpleRequestTransport OR Authentication OR credentials OR password\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 1,
+        "incomplete_results": false,
+        "items": [
+          {
+            "number": 173,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/173",
+            "title": "Remove password from `Authentication` debug output",
+            "state": "closed",
+            "body": "This will prevent users of our program from making mistakes, it also follows the other part of monero-oxide that attempt to hide information from the debug output that might be private. ",
+            "pull_request": {
+              "merged_at": "2026-04-06T14:22:46Z"
+            }
+          }
+        ]
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:issue monero-oxide/interface/daemon/simple-request/src/lib.rs OR lib OR SimpleRequestTransport OR Authentication OR credentials OR password\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 7,
+        "incomplete_results": false,
+        "items": [
+          {
+            "number": 174,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/174",
+            "title": "Sensitive Data Leakage via derive(Debug) in Simple Request Transport",
+            "state": "closed",
+            "body": "### Description\nIn `interface/daemon/simple-request/src/lib.rs`, there is an inconsistency in how sensitive data is handled within debug outputs. While the `Authentication` enum has a manual `fmt::Debug` implementation to prevent credential leaking, the parent struct `SimpleRequestTransport` still uses `#[derive(Debug)]` on line 54.\n\n### Vulnerability Detail\nThe `SimpleRequestTransport` struct contains an `authentication` field of type `Authentication`. Because the struct itself derives `Debug`, any debug-level logging or printing of the transport object (e.g., `println!(\"{:?}\", transport)`) will include and expose the authentication credentials. This effectively bypasses the redaction logic implemented in the `Authentication` enum's manual Debug trait.\n\n### Impact\nThis leads to **Sensitive Information Leakage**. Credentials (username/password) could be inadvertently written to system logs or console outputs, especially during debugging or automated logging in production environments.\n\n### Recommended Fix\nRemove `Debug` from the `derive` attribute of `Simple Request \n\n<img width=\"1366\" height=\"768\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/4cbd8a8f-3c08-494d-ab12-fef46e9e40ac\" />\n<img width=\"1366\" height=\"768\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/a2348a60-b9cf-420a-a863-314c506c1359\" />\n<img width=\"1366\" height=\"768\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/d242390a-e27a-44af-8468-9316796f1e95\" />\n\nTransport` and implement the `Debug` trait manually to ensure the `authentication` field is either redacted or skipped entirely."
+          },
+          {
+            "number": 160,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/160",
+            "title": "`monero-address` `from_str` method of `Address` is not idiomatic.",
+            "state": "open",
+            "body": "The [Address](https://github.com/monero-oxide/monero-oxide/blob/cae84b7b16051ac8bf92ed151aad49b9e6f4fcae/monero-oxide/wallet/address/src/lib.rs#L350) struct has a method named [from_str](https://github.com/monero-oxide/monero-oxide/blob/cae84b7b16051ac8bf92ed151aad49b9e6f4fcae/monero-oxide/wallet/address/src/lib.rs#L472) to construct itself from a &str and a second parameter.\n\nIt also has a method named [from_str_with_unchecked_network](https://github.com/monero-oxide/monero-oxide/blob/cae84b7b16051ac8bf92ed151aad49b9e6f4fcae/monero-oxide/wallet/address/src/lib.rs#L419) that construct itself from a &str only.\n\nThe trait [FromStr](https://doc.rust-lang.org/std/str/trait.FromStr.html) from the standard library has a method named [from_str](https://doc.rust-lang.org/std/str/trait.FromStr.html#tymethod.from_str) that construct the type from &str only.\n\nFrom a Rust design pattern perspective, I suggest the following:\n\n- rename `from_str` to `from_str_with_checked_network`\n- implements `FromStr` for `Address`.\n\nI can create a PR if agreed."
+          },
+          {
+            "number": 117,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/117",
+            "title": "monero-simple-request-rpc is variable-time w.r.t. the authentication",
+            "state": "closed",
+            "body": "Please see https://github.com/monero-oxide/monero-oxide/issues/116 for the vibe gestured at. There are more specific issues too however."
+          },
+          {
+            "number": 65,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/65",
+            "title": "Exorbitant fee returned from Monero node may cause overflow on multiplication",
+            "state": "closed",
+            "body": "https://github.com/monero-oxide/monero-oxide/blob/dc8e38c153e463eb680ec008cde9cff51ed29926/monero-oxide/rpc/src/lib.rs#L758 for the problematic line."
+          },
+          {
+            "number": 87,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/87",
+            "title": "Expose webpki flag on monero-simple-request-rpc",
+            "state": "closed",
+            "body": "I have encountered the following panic in production.\n\n```\nthread 'main' panicked at /root/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/simple-request-0.1.0/src/lib.rs:65:8:\nasb             | couldn't fetch system's SSL roots: Custom { kind: NotFound, error: \"no native root CA certificates found (errors: [])\" }\nasb             | note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n```\n\nThis should be replicable using [this](https://github.com/eigenwallet/core/blob/36c1c3a28be6c9e0e01878b3bcc9175a1ae52c5c/swap-asb/Dockerfile) Docker Image. I fixed it in our case by  properly installing the root certificates in the Docker image (https://github.com/eigenwallet/core/pull/569)\n\n`monero-simple-request-rpc` should expose a `webpki` flag which when enabled will use the Mozilla root certificates as defined here: https://github.com/rustls/hyper-rustls/blob/5e9b69b4128abfc147e8b6fa55977eac4c3f575c/src/config.rs#L56C8-L56C25\n\nThis \"issue\" is also tracked here https://github.com/rustls/hyper-rustls/issues/187 but it seems to be expected behaviour."
+          },
+          {
+            "number": 125,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/125",
+            "title": "Fast calls for FCMP++ proof size",
+            "state": "closed",
+            "body": "I opened [this PR](https://github.com/kayabaNerve/fcmp-plus-plus/pull/29) to the original FCMP++ repo to avoid the slow call for proof size during proof de-serialization. @kayabaNerve NACK'd that PR in favor of implementing a table for proof sizes internal to the rust FCMP++ lib. We have a static table in our branch on the C++ side over [here](https://github.com/seraphis-migration/monero/blob/15edaa505908a377f0b013d3a522a966278865fa/src/fcmp_pp/proof_len.h). I figured letting the caller handling tabling is nice, but I'm ok with an alternative solution that achieves fast calls for the proof len."
+          },
+          {
+            "number": 41,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/41",
+            "title": "Move monero-rpc over to cuprate-epee-encoding",
+            "state": "closed",
+            "body": "When I wrote the RPC code originally present in monero-serai, I started with [monero-epee-bin-serde](https://github.com/monero-rs/monero-epee-bin-serde), which had [multiple fundamental issues](https://github.com/monero-rs/monero-epee-bin-serde/issues?q=is%3Aissue). Writing a good epee library is _hard_. It's an format which originally lacked documentation.\n\nIn order to deal with how monero-epee-bin-serde had too many issues, and without fixing the issues within monero-epee-bin-serde due to the difficulty of doing so, I simply avoided epee as much as possible. This worked entirely fine, albeit inefficiently, except for one location. Fetching outputs' indexes fundamentally requires epee as the Monero node _only_ offers a binary endpoint. This led to me writing the following:\n\nhttps://github.com/monero-oxide/monero-oxide/blob/32e6b5fe5ba9e1ea3e68da882550005122a11d22/monero-oxide/rpc/src/lib.rs#L838-L1016\n\nThe above monstrosity, fragile and should never have been born, _works_. It may not work well, it may not work in the future, but it works _now_.\n\nIdeally, we would be able to replace this with monero-epee-bin-serde for a guarantee of quality, and _start_ using epee where we prior avoided it (for efficiency reasons).\n\nThe primary question is if `monero-epee-bin-serde` is worth the additional dependency tree given the benefit _to this spot_. If these horrific 178 lines work without issue, then there's no benefit. Additionally, with FCMP++, we could _reduce_ the scope of monero-rpc and _remove_ `get_o_indexes` as it'll be unnecessary to satisfy monero-wallet.\n\nTechnically, another crate can define a struct and implement `monero_rpc::Rpc` itself _with epee internally_ for those who prefer the larger dependency tree for the stability offered. That's due to the modular design intended with it. Unfortunately, it's difficult in practice, as I commented [here](https://github.com/monero-oxide/monero-oxide/issues/34#issuecomment-3217101957). Discussions on an appropriate re-ar"
+          }
+        ]
+      }
+    },
+    "search.commits::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide monero-oxide/interface/daemon/simple-request/src/lib.rs OR lib OR SimpleRequestTransport OR Authentication OR credentials OR password\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 3,
+        "items": [
+          {
+            "sha": "055accb2d87dcfc5f1b09bbc089574fdd680fb74",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/055accb2d87dcfc5f1b09bbc089574fdd680fb74",
+            "commit": {
+              "message": "Remove password from `Authentication` debug output (#173)"
+            }
+          },
+          {
+            "sha": "cae84b7b16051ac8bf92ed151aad49b9e6f4fcae",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/cae84b7b16051ac8bf92ed151aad49b9e6f4fcae",
+            "commit": {
+              "message": "New `monero-rpc` candidate (#66)\n\n* Split `ProvidesTransactions` out of `Rpc`\n\nResolves https://github.com/monero-oxide/monero-oxide/issues/3.\n\nCandidate for the rewrite discussed in\nhttps://github.com/monero-oxide/monero-oxide/issues/34.\n\n* Split `ProvidesBlockchain` out of `Rpc`\n\nIntroduces APIs to get blocks in batches, resolving the originally stated issue\nof https://github.com/monero-oxide/monero-oxide/issues/34.\n\n* Move `generate_blocks` from `Rpc` to `MoneroDaemon`\n\n* Introduce `ProvidesBlockchainMeta`, `PublishTransaction`\n\n* Split out the fee API from `Rpc`\n\nFixes https://github.com/monero-oxide/monero-oxide/issues/65.\n\n* Move `get_o_indexes` to `ProvidesOutputs`\n\n* `ProvidesScannableBlocks` abstraction\n\nNot currently implemented as it practically requires `get_blocks.bin`, which we\ndon't support.\n\n* Trim `get_output_distribution_end_height` in favor of `ProvidesBlockchainMeta`\n\nShrinks `ProvidesBlockchainMeta` by removing `get_hardfork_version` and moving\n`get_block_hash` to `ProvidesBlockchain`.\n\n* Move `DecoyRpc::get_outs` to `ProvidesOutputs::get_ringct_outputs`\n\n* ProvidesDecoys\n\n* Remove `get_` prefix from RPC methods\n\n* Rework erros in `monero-rpc`\n\n* Remove untrusted input from error messages\n\nThis ensures they're safe to log.\n\n* Bound HTTP response sizes to prevent a malicious Monero node which actually replies with a several GB response\n\n* Correct rebase\n\nEffectively re-applies 75a5048bc6e8ff7012eeb8f208716e16979323ba and\nb8263ce4b04ad8cc018a30bcacabc24c7ab94246.\n\n* Fix `no-std` builds of `monero-rpc`\n\n* Attempt fix for prunable hashes not lining up\n\n* Clarify bounds in the `monero_daemon` module\n\n* Rename `monero-rpc` to `monero-interface`\n\nThis is no longer solely for _Remote_ Procedure Calls, and `monero-rpc` is\nalready a published crate.\n\n* Rename \"Source\" terminology to \"Interface\"\n\n* Move `interface/src/monero_daemon.rs` to `interface/daemon`\n\nIt has almost no relation to the rest of the library and we aren't benefited by\nits inclusion.\n\nRem"
+            }
+          },
+          {
+            "sha": "adb23f47e149b5d3ef74e048ccb25e7eb484190f",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/adb23f47e149b5d3ef74e048ccb25e7eb484190f",
+            "commit": {
+              "message": "Extensively introduce internal bounds (#77)\n\n* Extensively introduce internal bounds\n\nResolves https://github.com/monero-oxide/monero-oxide/issues/72.\n\nThis commit's most notable changes are to `monero-io`, which has been widened\nto accept `FnMut` over `Fn` (as all `Fn` are `FnMut`), and to the handling of\narbitrary data as defined in `monero-wallet`.\n\nPrior, `monero-wallet` would only create transactions whose extra was less than\nthe limit imposed by a relay limit, yet would accept arbitrary data from an\nextra of any size. Now, when parsing arbitrary data out of a transaction, only\nthe arbitrary data fields within the first 1060 bytes are considered. This lets\nus establish a bound on the amount of arbitrary data despite extra itself being\nunbounded. The serialization of `Metadata` has also been adjusted to use a\n`VarInt` over a `u64`.\n\nThe bump to the version of `std-shims` is required for\n`impl<R: Read> Read for &mut R`, which is used inside the new\n`Transaction::read` function (which now enforces a maximum byte length on\nnon-miner transactions).\n\nSplit out of https://github.com/monero-oxide/monero-oxide/pull/66.\nSpecifically, this represents the following commits:\n\ncommit e041ad78e1c209ba5a66e7f62f3bd87ae650093e\nFix `no-std` builds\n\n---\n\ncommit 2ab2db1bce641f1610dd7729fdcc4542d8b7f55d\nUpdate citation for the TX extra relay rule now that it's merged\n\nAlso adds a test for the new limit on arbitrary data, and prefers `_SIZE` to\n`_LEN` in constants I've declared.\n\n---\n\ncommit 57d5bca53f2ec710539ee790cd8a7798669a07df\nBound the size of addresses when deserializing a `SignableTransaction`\n\n---\n\ncommit 63cc9361403bc9b6d7837eea531fe208894154d4\nIntroduce length bound on the size of an address string with `SignableTransaction` deserialization\n\n---\n\ncommit 1eebe1949d9af58971ac0a92d106ceb747cb61a3\nRename `MAX_INPUTS` to `INPUTS_UPPER_BOUND`, as it isn't accurate\n\nAlso uses it within `SignableTransaction` deserialization.\n\n---\n\ncommit 3f03b0f9a8042ac2f58cfcd52166a8768c7b852e\nI"
+            }
+          }
+        ]
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:pr monero-oxide/interface/daemon/simple-request/src/lib.rs\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 0,
+        "incomplete_results": false,
+        "items": []
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:issue monero-oxide/interface/daemon/simple-request/src/lib.rs\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 0,
+        "incomplete_results": false,
+        "items": []
+      }
+    },
+    "search.commits::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide monero-oxide/interface/daemon/simple-request/src/lib.rs\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 0,
+        "items": []
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:pr lib\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 0,
+        "incomplete_results": false,
+        "items": []
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:issue lib\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 6,
+        "incomplete_results": false,
+        "items": [
+          {
+            "number": 160,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/160",
+            "title": "`monero-address` `from_str` method of `Address` is not idiomatic.",
+            "state": "open",
+            "body": "The [Address](https://github.com/monero-oxide/monero-oxide/blob/cae84b7b16051ac8bf92ed151aad49b9e6f4fcae/monero-oxide/wallet/address/src/lib.rs#L350) struct has a method named [from_str](https://github.com/monero-oxide/monero-oxide/blob/cae84b7b16051ac8bf92ed151aad49b9e6f4fcae/monero-oxide/wallet/address/src/lib.rs#L472) to construct itself from a &str and a second parameter.\n\nIt also has a method named [from_str_with_unchecked_network](https://github.com/monero-oxide/monero-oxide/blob/cae84b7b16051ac8bf92ed151aad49b9e6f4fcae/monero-oxide/wallet/address/src/lib.rs#L419) that construct itself from a &str only.\n\nThe trait [FromStr](https://doc.rust-lang.org/std/str/trait.FromStr.html) from the standard library has a method named [from_str](https://doc.rust-lang.org/std/str/trait.FromStr.html#tymethod.from_str) that construct the type from &str only.\n\nFrom a Rust design pattern perspective, I suggest the following:\n\n- rename `from_str` to `from_str_with_checked_network`\n- implements `FromStr` for `Address`.\n\nI can create a PR if agreed."
+          },
+          {
+            "number": 174,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/174",
+            "title": "Sensitive Data Leakage via derive(Debug) in Simple Request Transport",
+            "state": "closed",
+            "body": "### Description\nIn `interface/daemon/simple-request/src/lib.rs`, there is an inconsistency in how sensitive data is handled within debug outputs. While the `Authentication` enum has a manual `fmt::Debug` implementation to prevent credential leaking, the parent struct `SimpleRequestTransport` still uses `#[derive(Debug)]` on line 54.\n\n### Vulnerability Detail\nThe `SimpleRequestTransport` struct contains an `authentication` field of type `Authentication`. Because the struct itself derives `Debug`, any debug-level logging or printing of the transport object (e.g., `println!(\"{:?}\", transport)`) will include and expose the authentication credentials. This effectively bypasses the redaction logic implemented in the `Authentication` enum's manual Debug trait.\n\n### Impact\nThis leads to **Sensitive Information Leakage**. Credentials (username/password) could be inadvertently written to system logs or console outputs, especially during debugging or automated logging in production environments.\n\n### Recommended Fix\nRemove `Debug` from the `derive` attribute of `Simple Request \n\n<img width=\"1366\" height=\"768\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/4cbd8a8f-3c08-494d-ab12-fef46e9e40ac\" />\n<img width=\"1366\" height=\"768\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/a2348a60-b9cf-420a-a863-314c506c1359\" />\n<img width=\"1366\" height=\"768\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/d242390a-e27a-44af-8468-9316796f1e95\" />\n\nTransport` and implement the `Debug` trait manually to ensure the `authentication` field is either redacted or skipped entirely."
+          },
+          {
+            "number": 65,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/65",
+            "title": "Exorbitant fee returned from Monero node may cause overflow on multiplication",
+            "state": "closed",
+            "body": "https://github.com/monero-oxide/monero-oxide/blob/dc8e38c153e463eb680ec008cde9cff51ed29926/monero-oxide/rpc/src/lib.rs#L758 for the problematic line."
+          },
+          {
+            "number": 87,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/87",
+            "title": "Expose webpki flag on monero-simple-request-rpc",
+            "state": "closed",
+            "body": "I have encountered the following panic in production.\n\n```\nthread 'main' panicked at /root/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/simple-request-0.1.0/src/lib.rs:65:8:\nasb             | couldn't fetch system's SSL roots: Custom { kind: NotFound, error: \"no native root CA certificates found (errors: [])\" }\nasb             | note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n```\n\nThis should be replicable using [this](https://github.com/eigenwallet/core/blob/36c1c3a28be6c9e0e01878b3bcc9175a1ae52c5c/swap-asb/Dockerfile) Docker Image. I fixed it in our case by  properly installing the root certificates in the Docker image (https://github.com/eigenwallet/core/pull/569)\n\n`monero-simple-request-rpc` should expose a `webpki` flag which when enabled will use the Mozilla root certificates as defined here: https://github.com/rustls/hyper-rustls/blob/5e9b69b4128abfc147e8b6fa55977eac4c3f575c/src/config.rs#L56C8-L56C25\n\nThis \"issue\" is also tracked here https://github.com/rustls/hyper-rustls/issues/187 but it seems to be expected behaviour."
+          },
+          {
+            "number": 125,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/125",
+            "title": "Fast calls for FCMP++ proof size",
+            "state": "closed",
+            "body": "I opened [this PR](https://github.com/kayabaNerve/fcmp-plus-plus/pull/29) to the original FCMP++ repo to avoid the slow call for proof size during proof de-serialization. @kayabaNerve NACK'd that PR in favor of implementing a table for proof sizes internal to the rust FCMP++ lib. We have a static table in our branch on the C++ side over [here](https://github.com/seraphis-migration/monero/blob/15edaa505908a377f0b013d3a522a966278865fa/src/fcmp_pp/proof_len.h). I figured letting the caller handling tabling is nice, but I'm ok with an alternative solution that achieves fast calls for the proof len."
+          },
+          {
+            "number": 41,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/41",
+            "title": "Move monero-rpc over to cuprate-epee-encoding",
+            "state": "closed",
+            "body": "When I wrote the RPC code originally present in monero-serai, I started with [monero-epee-bin-serde](https://github.com/monero-rs/monero-epee-bin-serde), which had [multiple fundamental issues](https://github.com/monero-rs/monero-epee-bin-serde/issues?q=is%3Aissue). Writing a good epee library is _hard_. It's an format which originally lacked documentation.\n\nIn order to deal with how monero-epee-bin-serde had too many issues, and without fixing the issues within monero-epee-bin-serde due to the difficulty of doing so, I simply avoided epee as much as possible. This worked entirely fine, albeit inefficiently, except for one location. Fetching outputs' indexes fundamentally requires epee as the Monero node _only_ offers a binary endpoint. This led to me writing the following:\n\nhttps://github.com/monero-oxide/monero-oxide/blob/32e6b5fe5ba9e1ea3e68da882550005122a11d22/monero-oxide/rpc/src/lib.rs#L838-L1016\n\nThe above monstrosity, fragile and should never have been born, _works_. It may not work well, it may not work in the future, but it works _now_.\n\nIdeally, we would be able to replace this with monero-epee-bin-serde for a guarantee of quality, and _start_ using epee where we prior avoided it (for efficiency reasons).\n\nThe primary question is if `monero-epee-bin-serde` is worth the additional dependency tree given the benefit _to this spot_. If these horrific 178 lines work without issue, then there's no benefit. Additionally, with FCMP++, we could _reduce_ the scope of monero-rpc and _remove_ `get_o_indexes` as it'll be unnecessary to satisfy monero-wallet.\n\nTechnically, another crate can define a struct and implement `monero_rpc::Rpc` itself _with epee internally_ for those who prefer the larger dependency tree for the stability offered. That's due to the modular design intended with it. Unfortunately, it's difficult in practice, as I commented [here](https://github.com/monero-oxide/monero-oxide/issues/34#issuecomment-3217101957). Discussions on an appropriate re-ar"
+          }
+        ]
+      }
+    },
+    "search.commits::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide lib\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 1,
+        "items": [
+          {
+            "sha": "adb23f47e149b5d3ef74e048ccb25e7eb484190f",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/adb23f47e149b5d3ef74e048ccb25e7eb484190f",
+            "commit": {
+              "message": "Extensively introduce internal bounds (#77)\n\n* Extensively introduce internal bounds\n\nResolves https://github.com/monero-oxide/monero-oxide/issues/72.\n\nThis commit's most notable changes are to `monero-io`, which has been widened\nto accept `FnMut` over `Fn` (as all `Fn` are `FnMut`), and to the handling of\narbitrary data as defined in `monero-wallet`.\n\nPrior, `monero-wallet` would only create transactions whose extra was less than\nthe limit imposed by a relay limit, yet would accept arbitrary data from an\nextra of any size. Now, when parsing arbitrary data out of a transaction, only\nthe arbitrary data fields within the first 1060 bytes are considered. This lets\nus establish a bound on the amount of arbitrary data despite extra itself being\nunbounded. The serialization of `Metadata` has also been adjusted to use a\n`VarInt` over a `u64`.\n\nThe bump to the version of `std-shims` is required for\n`impl<R: Read> Read for &mut R`, which is used inside the new\n`Transaction::read` function (which now enforces a maximum byte length on\nnon-miner transactions).\n\nSplit out of https://github.com/monero-oxide/monero-oxide/pull/66.\nSpecifically, this represents the following commits:\n\ncommit e041ad78e1c209ba5a66e7f62f3bd87ae650093e\nFix `no-std` builds\n\n---\n\ncommit 2ab2db1bce641f1610dd7729fdcc4542d8b7f55d\nUpdate citation for the TX extra relay rule now that it's merged\n\nAlso adds a test for the new limit on arbitrary data, and prefers `_SIZE` to\n`_LEN` in constants I've declared.\n\n---\n\ncommit 57d5bca53f2ec710539ee790cd8a7798669a07df\nBound the size of addresses when deserializing a `SignableTransaction`\n\n---\n\ncommit 63cc9361403bc9b6d7837eea531fe208894154d4\nIntroduce length bound on the size of an address string with `SignableTransaction` deserialization\n\n---\n\ncommit 1eebe1949d9af58971ac0a92d106ceb747cb61a3\nRename `MAX_INPUTS` to `INPUTS_UPPER_BOUND`, as it isn't accurate\n\nAlso uses it within `SignableTransaction` deserialization.\n\n---\n\ncommit 3f03b0f9a8042ac2f58cfcd52166a8768c7b852e\nI"
+            }
+          }
+        ]
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:pr SimpleRequestTransport\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 0,
+        "incomplete_results": false,
+        "items": []
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:issue SimpleRequestTransport\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 1,
+        "incomplete_results": false,
+        "items": [
+          {
+            "number": 174,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/174",
+            "title": "Sensitive Data Leakage via derive(Debug) in Simple Request Transport",
+            "state": "closed",
+            "body": "### Description\nIn `interface/daemon/simple-request/src/lib.rs`, there is an inconsistency in how sensitive data is handled within debug outputs. While the `Authentication` enum has a manual `fmt::Debug` implementation to prevent credential leaking, the parent struct `SimpleRequestTransport` still uses `#[derive(Debug)]` on line 54.\n\n### Vulnerability Detail\nThe `SimpleRequestTransport` struct contains an `authentication` field of type `Authentication`. Because the struct itself derives `Debug`, any debug-level logging or printing of the transport object (e.g., `println!(\"{:?}\", transport)`) will include and expose the authentication credentials. This effectively bypasses the redaction logic implemented in the `Authentication` enum's manual Debug trait.\n\n### Impact\nThis leads to **Sensitive Information Leakage**. Credentials (username/password) could be inadvertently written to system logs or console outputs, especially during debugging or automated logging in production environments.\n\n### Recommended Fix\nRemove `Debug` from the `derive` attribute of `Simple Request \n\n<img width=\"1366\" height=\"768\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/4cbd8a8f-3c08-494d-ab12-fef46e9e40ac\" />\n<img width=\"1366\" height=\"768\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/a2348a60-b9cf-420a-a863-314c506c1359\" />\n<img width=\"1366\" height=\"768\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/d242390a-e27a-44af-8468-9316796f1e95\" />\n\nTransport` and implement the `Debug` trait manually to ensure the `authentication` field is either redacted or skipped entirely."
+          }
+        ]
+      }
+    },
+    "search.commits::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide SimpleRequestTransport\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 0,
+        "items": []
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:pr Authentication\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 1,
+        "incomplete_results": false,
+        "items": [
+          {
+            "number": 173,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/173",
+            "title": "Remove password from `Authentication` debug output",
+            "state": "closed",
+            "body": "This will prevent users of our program from making mistakes, it also follows the other part of monero-oxide that attempt to hide information from the debug output that might be private. ",
+            "pull_request": {
+              "merged_at": "2026-04-06T14:22:46Z"
+            }
+          }
+        ]
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:issue Authentication\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 2,
+        "incomplete_results": false,
+        "items": [
+          {
+            "number": 174,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/174",
+            "title": "Sensitive Data Leakage via derive(Debug) in Simple Request Transport",
+            "state": "closed",
+            "body": "### Description\nIn `interface/daemon/simple-request/src/lib.rs`, there is an inconsistency in how sensitive data is handled within debug outputs. While the `Authentication` enum has a manual `fmt::Debug` implementation to prevent credential leaking, the parent struct `SimpleRequestTransport` still uses `#[derive(Debug)]` on line 54.\n\n### Vulnerability Detail\nThe `SimpleRequestTransport` struct contains an `authentication` field of type `Authentication`. Because the struct itself derives `Debug`, any debug-level logging or printing of the transport object (e.g., `println!(\"{:?}\", transport)`) will include and expose the authentication credentials. This effectively bypasses the redaction logic implemented in the `Authentication` enum's manual Debug trait.\n\n### Impact\nThis leads to **Sensitive Information Leakage**. Credentials (username/password) could be inadvertently written to system logs or console outputs, especially during debugging or automated logging in production environments.\n\n### Recommended Fix\nRemove `Debug` from the `derive` attribute of `Simple Request \n\n<img width=\"1366\" height=\"768\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/4cbd8a8f-3c08-494d-ab12-fef46e9e40ac\" />\n<img width=\"1366\" height=\"768\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/a2348a60-b9cf-420a-a863-314c506c1359\" />\n<img width=\"1366\" height=\"768\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/d242390a-e27a-44af-8468-9316796f1e95\" />\n\nTransport` and implement the `Debug` trait manually to ensure the `authentication` field is either redacted or skipped entirely."
+          },
+          {
+            "number": 117,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/117",
+            "title": "monero-simple-request-rpc is variable-time w.r.t. the authentication",
+            "state": "closed",
+            "body": "Please see https://github.com/monero-oxide/monero-oxide/issues/116 for the vibe gestured at. There are more specific issues too however."
+          }
+        ]
+      }
+    },
+    "search.commits::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide Authentication\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 2,
+        "items": [
+          {
+            "sha": "055accb2d87dcfc5f1b09bbc089574fdd680fb74",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/055accb2d87dcfc5f1b09bbc089574fdd680fb74",
+            "commit": {
+              "message": "Remove password from `Authentication` debug output (#173)"
+            }
+          },
+          {
+            "sha": "cae84b7b16051ac8bf92ed151aad49b9e6f4fcae",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/cae84b7b16051ac8bf92ed151aad49b9e6f4fcae",
+            "commit": {
+              "message": "New `monero-rpc` candidate (#66)\n\n* Split `ProvidesTransactions` out of `Rpc`\n\nResolves https://github.com/monero-oxide/monero-oxide/issues/3.\n\nCandidate for the rewrite discussed in\nhttps://github.com/monero-oxide/monero-oxide/issues/34.\n\n* Split `ProvidesBlockchain` out of `Rpc`\n\nIntroduces APIs to get blocks in batches, resolving the originally stated issue\nof https://github.com/monero-oxide/monero-oxide/issues/34.\n\n* Move `generate_blocks` from `Rpc` to `MoneroDaemon`\n\n* Introduce `ProvidesBlockchainMeta`, `PublishTransaction`\n\n* Split out the fee API from `Rpc`\n\nFixes https://github.com/monero-oxide/monero-oxide/issues/65.\n\n* Move `get_o_indexes` to `ProvidesOutputs`\n\n* `ProvidesScannableBlocks` abstraction\n\nNot currently implemented as it practically requires `get_blocks.bin`, which we\ndon't support.\n\n* Trim `get_output_distribution_end_height` in favor of `ProvidesBlockchainMeta`\n\nShrinks `ProvidesBlockchainMeta` by removing `get_hardfork_version` and moving\n`get_block_hash` to `ProvidesBlockchain`.\n\n* Move `DecoyRpc::get_outs` to `ProvidesOutputs::get_ringct_outputs`\n\n* ProvidesDecoys\n\n* Remove `get_` prefix from RPC methods\n\n* Rework erros in `monero-rpc`\n\n* Remove untrusted input from error messages\n\nThis ensures they're safe to log.\n\n* Bound HTTP response sizes to prevent a malicious Monero node which actually replies with a several GB response\n\n* Correct rebase\n\nEffectively re-applies 75a5048bc6e8ff7012eeb8f208716e16979323ba and\nb8263ce4b04ad8cc018a30bcacabc24c7ab94246.\n\n* Fix `no-std` builds of `monero-rpc`\n\n* Attempt fix for prunable hashes not lining up\n\n* Clarify bounds in the `monero_daemon` module\n\n* Rename `monero-rpc` to `monero-interface`\n\nThis is no longer solely for _Remote_ Procedure Calls, and `monero-rpc` is\nalready a published crate.\n\n* Rename \"Source\" terminology to \"Interface\"\n\n* Move `interface/src/monero_daemon.rs` to `interface/daemon`\n\nIt has almost no relation to the rest of the library and we aren't benefited by\nits inclusion.\n\nRem"
+            }
+          }
+        ]
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:pr credentials\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 0,
+        "incomplete_results": false,
+        "items": []
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:issue credentials\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 1,
+        "incomplete_results": false,
+        "items": [
+          {
+            "number": 174,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/174",
+            "title": "Sensitive Data Leakage via derive(Debug) in Simple Request Transport",
+            "state": "closed",
+            "body": "### Description\nIn `interface/daemon/simple-request/src/lib.rs`, there is an inconsistency in how sensitive data is handled within debug outputs. While the `Authentication` enum has a manual `fmt::Debug` implementation to prevent credential leaking, the parent struct `SimpleRequestTransport` still uses `#[derive(Debug)]` on line 54.\n\n### Vulnerability Detail\nThe `SimpleRequestTransport` struct contains an `authentication` field of type `Authentication`. Because the struct itself derives `Debug`, any debug-level logging or printing of the transport object (e.g., `println!(\"{:?}\", transport)`) will include and expose the authentication credentials. This effectively bypasses the redaction logic implemented in the `Authentication` enum's manual Debug trait.\n\n### Impact\nThis leads to **Sensitive Information Leakage**. Credentials (username/password) could be inadvertently written to system logs or console outputs, especially during debugging or automated logging in production environments.\n\n### Recommended Fix\nRemove `Debug` from the `derive` attribute of `Simple Request \n\n<img width=\"1366\" height=\"768\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/4cbd8a8f-3c08-494d-ab12-fef46e9e40ac\" />\n<img width=\"1366\" height=\"768\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/a2348a60-b9cf-420a-a863-314c506c1359\" />\n<img width=\"1366\" height=\"768\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/d242390a-e27a-44af-8468-9316796f1e95\" />\n\nTransport` and implement the `Debug` trait manually to ensure the `authentication` field is either redacted or skipped entirely."
+          }
+        ]
+      }
+    },
+    "search.commits::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide credentials\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 0,
+        "items": []
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:pr password\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 1,
+        "incomplete_results": false,
+        "items": [
+          {
+            "number": 173,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/pull/173",
+            "title": "Remove password from `Authentication` debug output",
+            "state": "closed",
+            "body": "This will prevent users of our program from making mistakes, it also follows the other part of monero-oxide that attempt to hide information from the debug output that might be private. ",
+            "pull_request": {
+              "merged_at": "2026-04-06T14:22:46Z"
+            }
+          }
+        ]
+      }
+    },
+    "search.issuesAndPullRequests::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide type:issue password\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 1,
+        "incomplete_results": false,
+        "items": [
+          {
+            "number": 174,
+            "html_url": "https://github.com/monero-oxide/monero-oxide/issues/174",
+            "title": "Sensitive Data Leakage via derive(Debug) in Simple Request Transport",
+            "state": "closed",
+            "body": "### Description\nIn `interface/daemon/simple-request/src/lib.rs`, there is an inconsistency in how sensitive data is handled within debug outputs. While the `Authentication` enum has a manual `fmt::Debug` implementation to prevent credential leaking, the parent struct `SimpleRequestTransport` still uses `#[derive(Debug)]` on line 54.\n\n### Vulnerability Detail\nThe `SimpleRequestTransport` struct contains an `authentication` field of type `Authentication`. Because the struct itself derives `Debug`, any debug-level logging or printing of the transport object (e.g., `println!(\"{:?}\", transport)`) will include and expose the authentication credentials. This effectively bypasses the redaction logic implemented in the `Authentication` enum's manual Debug trait.\n\n### Impact\nThis leads to **Sensitive Information Leakage**. Credentials (username/password) could be inadvertently written to system logs or console outputs, especially during debugging or automated logging in production environments.\n\n### Recommended Fix\nRemove `Debug` from the `derive` attribute of `Simple Request \n\n<img width=\"1366\" height=\"768\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/4cbd8a8f-3c08-494d-ab12-fef46e9e40ac\" />\n<img width=\"1366\" height=\"768\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/a2348a60-b9cf-420a-a863-314c506c1359\" />\n<img width=\"1366\" height=\"768\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/d242390a-e27a-44af-8468-9316796f1e95\" />\n\nTransport` and implement the `Debug` trait manually to ensure the `authentication` field is either redacted or skipped entirely."
+          }
+        ]
+      }
+    },
+    "search.commits::{\"page\":1,\"per_page\":100,\"q\":\"repo:monero-oxide/monero-oxide password\"}": {
+      "ok": true,
+      "data": {
+        "total_count": 2,
+        "items": [
+          {
+            "sha": "055accb2d87dcfc5f1b09bbc089574fdd680fb74",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/055accb2d87dcfc5f1b09bbc089574fdd680fb74",
+            "commit": {
+              "message": "Remove password from `Authentication` debug output (#173)"
+            }
+          },
+          {
+            "sha": "cae84b7b16051ac8bf92ed151aad49b9e6f4fcae",
+            "html_url": "https://github.com/monero-oxide/monero-oxide/commit/cae84b7b16051ac8bf92ed151aad49b9e6f4fcae",
+            "commit": {
+              "message": "New `monero-rpc` candidate (#66)\n\n* Split `ProvidesTransactions` out of `Rpc`\n\nResolves https://github.com/monero-oxide/monero-oxide/issues/3.\n\nCandidate for the rewrite discussed in\nhttps://github.com/monero-oxide/monero-oxide/issues/34.\n\n* Split `ProvidesBlockchain` out of `Rpc`\n\nIntroduces APIs to get blocks in batches, resolving the originally stated issue\nof https://github.com/monero-oxide/monero-oxide/issues/34.\n\n* Move `generate_blocks` from `Rpc` to `MoneroDaemon`\n\n* Introduce `ProvidesBlockchainMeta`, `PublishTransaction`\n\n* Split out the fee API from `Rpc`\n\nFixes https://github.com/monero-oxide/monero-oxide/issues/65.\n\n* Move `get_o_indexes` to `ProvidesOutputs`\n\n* `ProvidesScannableBlocks` abstraction\n\nNot currently implemented as it practically requires `get_blocks.bin`, which we\ndon't support.\n\n* Trim `get_output_distribution_end_height` in favor of `ProvidesBlockchainMeta`\n\nShrinks `ProvidesBlockchainMeta` by removing `get_hardfork_version` and moving\n`get_block_hash` to `ProvidesBlockchain`.\n\n* Move `DecoyRpc::get_outs` to `ProvidesOutputs::get_ringct_outputs`\n\n* ProvidesDecoys\n\n* Remove `get_` prefix from RPC methods\n\n* Rework erros in `monero-rpc`\n\n* Remove untrusted input from error messages\n\nThis ensures they're safe to log.\n\n* Bound HTTP response sizes to prevent a malicious Monero node which actually replies with a several GB response\n\n* Correct rebase\n\nEffectively re-applies 75a5048bc6e8ff7012eeb8f208716e16979323ba and\nb8263ce4b04ad8cc018a30bcacabc24c7ab94246.\n\n* Fix `no-std` builds of `monero-rpc`\n\n* Attempt fix for prunable hashes not lining up\n\n* Clarify bounds in the `monero_daemon` module\n\n* Rename `monero-rpc` to `monero-interface`\n\nThis is no longer solely for _Remote_ Procedure Calls, and `monero-rpc` is\nalready a published crate.\n\n* Rename \"Source\" terminology to \"Interface\"\n\n* Move `interface/src/monero_daemon.rs` to `interface/daemon`\n\nIt has almost no relation to the rest of the library and we aren't benefited by\nits inclusion.\n\nRem"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

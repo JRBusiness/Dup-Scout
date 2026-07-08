@@ -1,0 +1,19 @@
+{
+  "name": "monero-simple-request-debug-leak",
+  "repo": "monero-oxide/monero-oxide",
+  "finding": {
+    "title": "Sensitive Data Leakage via derive(Debug) in Simple Request Transport",
+    "description": "SimpleRequestTransport derives Debug and contains Authentication credentials, so debug logging can expose username and password despite Authentication's redaction logic.",
+    "file": "monero-oxide/interface/daemon/simple-request/src/lib.rs",
+    "keys": [
+      "SimpleRequestTransport",
+      "Authentication",
+      "Debug",
+      "credentials",
+      "password",
+      "leakage"
+    ],
+    "bugClass": "sensitive-information-leak"
+  },
+  "expect": { "knownItemIds": ["#174"], "minVerdict": "PARTIAL-OVERLAP", "topK": 10 }
+}
